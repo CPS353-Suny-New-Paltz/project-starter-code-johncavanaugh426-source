@@ -171,6 +171,10 @@
       <message key="name.invalidPattern"
              value="Method name ''{0}'' must match pattern ''{1}''."/>
     </module>
+    <module name="LineLength">
+      <property name="max" value="100"/>
+      <property name="ignorePattern" value="^package.*|^import.*"/>
+    </module>
     <module name="EmptyCatchBlock">
       <property name="exceptionVariableName" value="expected"/>
     </module>
