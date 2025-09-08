@@ -12,3 +12,5 @@ The output is a string of all the numbers seen during the computation
 Example input and output:
 Input: 6
 Output: 6,3,10,5,16,8,4,2,1
+
+![System Diagram](https://github.com/CPS353-Suny-New-Paltz/project-starter-code-johncavanaugh426-source/blob/main/Part2Checkpoint2.png?raw=true)
