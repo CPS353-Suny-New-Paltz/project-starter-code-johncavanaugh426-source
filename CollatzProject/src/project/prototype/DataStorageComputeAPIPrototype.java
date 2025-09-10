@@ -2,13 +2,13 @@ package project.prototype;
 import project.annotations.ProcessAPIPrototype;
 import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
-import project.api.process.Processresult;
+import project.api.process.ProcessResult;
 import java.util.Arrays;
 import java.util.List;
 public class DataStorageComputeAPIPrototype {
 
     @ProcessAPIPrototype
-    public Processresult prototypeProcessData(DataStorageComputeAPI api) {
+    public ProcessResult prototypeProcessData(DataStorageComputeAPI api) {
         // Mock request for demonstration purposes
         ProcessRequest mockRequest = new ProcessRequest() {
             public List<Integer> getInputData() {
@@ -21,6 +21,6 @@ public class DataStorageComputeAPIPrototype {
 
         System.out.println("Mock processing input: " + mockRequest.getInputData());
         System.out.println("Writing output to: " + mockRequest.getOutputDestination());
-        return new Processresult(true, "Prototype complete");
+        return new ProcessResult(true, "Prototype complete");
     }
 }
