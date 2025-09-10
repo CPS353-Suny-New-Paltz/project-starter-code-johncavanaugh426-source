@@ -11,7 +11,9 @@ public class ComputeEngineAPIPrototype {
     public ComputeResult prototypeComputeCollatz(ComputeEngineAPI api) {
         // Mock request
         ComputeRequest mockRequest = new ComputeRequest() {
-            public int getInputNumber() { return 6; }
+            public int getInputNumber() { 
+            	return 6; 
+            	}
         };
 
         System.out.println("Computing Collatz sequence for: " + mockRequest.getInputNumber());
