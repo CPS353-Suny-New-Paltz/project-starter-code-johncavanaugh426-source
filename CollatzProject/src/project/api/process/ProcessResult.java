@@ -1,10 +1,10 @@
 package project.api.process;
 
-public class Processresult {
+public class ProcessResult {
     private final boolean success;
     private final String message;
 
-    public Processresult(boolean success, String message) {
+    public ProcessResult(boolean success, String message) {
         this.success = success;
         this.message = message;
     }
