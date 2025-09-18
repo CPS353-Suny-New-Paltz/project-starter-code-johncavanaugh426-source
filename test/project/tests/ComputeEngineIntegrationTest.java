@@ -18,6 +18,7 @@ public class ComputeEngineIntegrationTest {
 
     @Test
     public void testIntegrationWithInMemoryConfigs() {
+        // Instantiate real APIs for checkpoint checks
         ComputeEngineAPI conceptualEngine = new ComputeEngineAPIImpl();
         UserComputeAPI networkEngine = new UserComputeAPIImpl();
         Assertions.assertNotNull(conceptualEngine);
@@ -45,6 +46,7 @@ public class ComputeEngineIntegrationTest {
 
         InMemoryDataStorage storage = new InMemoryDataStorage(inputConfig, outputConfig);
         ProcessResult result = storage.processData(request);
+
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertFalse(outputResults.isEmpty());
     }

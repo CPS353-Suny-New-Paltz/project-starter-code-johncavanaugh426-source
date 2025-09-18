@@ -15,8 +15,11 @@ public class TestUserComputeAPI {
 
     @Test
     public void smokeTestUserComputeAPI() {
+        // Real object for checkpoint verification
         UserComputeAPI realApi = new UserComputeAPIImpl();
         Assertions.assertNotNull(realApi);
+
+        // Mock object for smoke testing
         UserComputeAPI mockAPI = Mockito.mock(UserComputeAPI.class);
 
         UserComputeRequest mockRequest = new UserComputeRequest() {
