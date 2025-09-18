@@ -1,4 +1,6 @@
+
 package project.tests;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -25,7 +27,7 @@ public class TestUserComputeAPI {
 
             @Override
             public String getOutputDelimiter() {
-                return ",";
+                return null;
             }
 
             @Override
@@ -36,9 +38,11 @@ public class TestUserComputeAPI {
 
         UserComputeResult expectedResult = new UserComputeResult(true, "mock success");
         when(mockAPI.processInput(mockRequest)).thenReturn(expectedResult);
+
         UserComputeResult result = mockAPI.processInput(mockRequest);
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("mock success", result.getMessage());
+
         verify(mockAPI).processInput(mockRequest);
     }
 }
