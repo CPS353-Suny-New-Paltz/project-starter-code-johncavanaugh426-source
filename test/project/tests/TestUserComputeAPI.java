@@ -10,7 +10,7 @@ import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
 
-public class UserComputeAPITest {
+public class TestUserComputeAPI {
 
     @Test
     public void smokeTestUserComputeAPI() {
