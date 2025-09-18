@@ -8,7 +8,7 @@ import project.api.conceptual.ComputeEngineAPI;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 
-public class ComputeEngineAPITest {
+public class TestComputeEngineAPI {
 
     @Test
     public void smokeTestComputeEngine() {
