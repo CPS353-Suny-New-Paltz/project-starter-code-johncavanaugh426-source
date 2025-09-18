@@ -8,11 +8,15 @@ import static org.mockito.Mockito.when;
 import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
+import project.impl.process.DataStorageComputeAPIImpl;
 
 public class TestDataStorageComputeAPI {
 
     @Test
     public void smokeTestDataStorageComputeAPI() {
+        
+        DataStorageComputeAPI realDataStore = new DataStorageComputeAPIImpl();
+        Assertions.assertNotNull(realDataStore);
         DataStorageComputeAPI mockDataStore = Mockito.mock(DataStorageComputeAPI.class);
 
         ProcessRequest mockRequest = new ProcessRequest() {
@@ -29,9 +33,11 @@ public class TestDataStorageComputeAPI {
 
         ProcessResult expectedResult = new ProcessResult(true, "mock processed");
         when(mockDataStore.processData(mockRequest)).thenReturn(expectedResult);
+
         ProcessResult result = mockDataStore.processData(mockRequest);
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("mock processed", result.getMessage());
+
         verify(mockDataStore).processData(mockRequest);
     }
 }
