@@ -1,4 +1,5 @@
 package project.tests;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -8,11 +9,21 @@ import project.testutil.InMemoryOutputConfig;
 import project.testutil.InMemoryDataStorage;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
+import project.api.conceptual.ComputeEngineAPI;
+import project.impl.conceptual.ComputeEngineAPIImpl;
+import project.api.network.UserComputeAPI;
+import project.impl.network.UserComputeAPIImpl;
 
 public class ComputeEngineIntegrationTest {
 
     @Test
     public void testIntegrationWithInMemoryConfigs() {
+        // Instantiate real APIs for checkpoint checks
+        ComputeEngineAPI conceptualEngine = new ComputeEngineAPIImpl();
+        UserComputeAPI networkEngine = new UserComputeAPIImpl();
+        Assertions.assertNotNull(conceptualEngine);
+        Assertions.assertNotNull(networkEngine);
+
         List<Integer> inputNumbers = new ArrayList<>();
         inputNumbers.add(1);
         inputNumbers.add(10);
@@ -35,6 +46,7 @@ public class ComputeEngineIntegrationTest {
 
         InMemoryDataStorage storage = new InMemoryDataStorage(inputConfig, outputConfig);
         ProcessResult result = storage.processData(request);
+
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertFalse(outputResults.isEmpty());
     }
