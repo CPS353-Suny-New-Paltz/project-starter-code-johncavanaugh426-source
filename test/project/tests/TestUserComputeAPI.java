@@ -1,4 +1,5 @@
 package project.tests;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,8 +14,11 @@ public class TestUserComputeAPI {
 
     @Test
     public void smokeTestUserComputeAPI() {
+        // Real object for checkpoint verification
         UserComputeAPI realApi = new UserComputeAPIImpl();
         Assertions.assertNotNull(realApi);
+
+        // Mock object for smoke testing
         UserComputeAPI mockAPI = Mockito.mock(UserComputeAPI.class);
 
         UserComputeRequest mockRequest = new UserComputeRequest() {
@@ -25,7 +29,7 @@ public class TestUserComputeAPI {
 
             @Override
             public String getOutputDelimiter() {
-                return ",";
+                return null;
             }
 
             @Override
@@ -36,9 +40,11 @@ public class TestUserComputeAPI {
 
         UserComputeResult expectedResult = new UserComputeResult(true, "mock success");
         when(mockAPI.processInput(mockRequest)).thenReturn(expectedResult);
+
         UserComputeResult result = mockAPI.processInput(mockRequest);
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("mock success", result.getMessage());
+
         verify(mockAPI).processInput(mockRequest);
     }
 }
