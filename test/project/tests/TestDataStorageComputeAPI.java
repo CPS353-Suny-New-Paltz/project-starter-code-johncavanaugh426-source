@@ -1,5 +1,4 @@
 package project.tests;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -8,13 +7,15 @@ import static org.mockito.Mockito.when;
 import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
+import project.impl.process.DataStorageComputeAPIImpl;
 
 public class TestDataStorageComputeAPI {
 
     @Test
     public void smokeTestDataStorageComputeAPI() {
+        DataStorageComputeAPI realDataStore = new DataStorageComputeAPIImpl();
+        Assertions.assertNotNull(realDataStore);
         DataStorageComputeAPI mockDataStore = Mockito.mock(DataStorageComputeAPI.class);
-
         ProcessRequest mockRequest = new ProcessRequest() {
             @Override
             public java.util.List<Integer> getInputData() {

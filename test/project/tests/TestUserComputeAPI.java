@@ -1,19 +1,20 @@
 package project.tests;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
+import project.impl.network.UserComputeAPIImpl;
 
 public class TestUserComputeAPI {
 
     @Test
     public void smokeTestUserComputeAPI() {
+        UserComputeAPI realApi = new UserComputeAPIImpl();
+        Assertions.assertNotNull(realApi);
         UserComputeAPI mockAPI = Mockito.mock(UserComputeAPI.class);
 
         UserComputeRequest mockRequest = new UserComputeRequest() {
@@ -24,7 +25,7 @@ public class TestUserComputeAPI {
 
             @Override
             public String getOutputDelimiter() {
-                return null;
+                return ",";
             }
 
             @Override
