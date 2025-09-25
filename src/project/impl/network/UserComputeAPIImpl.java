@@ -11,7 +11,11 @@ import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 import project.impl.conceptual.ComputeEngineAPIImpl;
 import project.impl.process.DataStorageComputeAPIImpl;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserComputeAPIImpl implements UserComputeAPI {
     private final DataStorageComputeAPI dataStore;
@@ -33,7 +37,14 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
-                    return null; 
+                    try {
+                        // Read integers from the user-specified input file
+                        return Files.lines(Paths.get(request.getInputSource()))
+                                .map(Integer::parseInt)
+                                .collect(Collectors.toList());
+                    } catch (Exception e) {
+                        return null;
+                    }
                 }
 
                 @Override
