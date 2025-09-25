@@ -1,4 +1,5 @@
 package project.impl.network;
+
 import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
@@ -15,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 public class UserComputeAPIImpl implements UserComputeAPI {
     private final DataStorageComputeAPI dataStore;
@@ -89,5 +89,4 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             return new UserComputeResult(false, "Error: " + e.getMessage());
         }
     }
-
 }
