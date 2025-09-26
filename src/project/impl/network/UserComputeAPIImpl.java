@@ -38,12 +38,13 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 @Override
                 public List<Integer> getInputData() {
                     try {
-                        // Read integers from the user-specified input file
                         return Files.lines(Paths.get(request.getInputSource()))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
                                 .map(Integer::parseInt)
                                 .collect(Collectors.toList());
                     } catch (Exception e) {
-                        return null;
+                        throw new RuntimeException("Failed to read input file: " + e.getMessage(), e);
                     }
                 }
 
@@ -53,7 +54,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             };
 
-            // Ask data storage to process the request (input + output)
+            // Ask data storage to process the request
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
@@ -66,6 +67,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
 
             // Step 2: Run Collatz computation for each input number
             StringBuilder resultsBuilder = new StringBuilder();
+            String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
             for (int i = 0; i < inputs.size(); i++) {
                 int number = inputs.get(i);
 
@@ -76,9 +78,13 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                     return new UserComputeResult(false, "Computation failed for input: " + number);
                 }
 
-                resultsBuilder.append(computeResult.getSequence());
+                resultsBuilder.append("Input: ")
+                        .append(number)
+                        .append(" -> Collatz Sequence: ")
+                        .append(computeResult.getSequence());
+
                 if (i < inputs.size() - 1) {
-                    resultsBuilder.append(request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",");
+                    resultsBuilder.append(delimiter);
                 }
             }
 

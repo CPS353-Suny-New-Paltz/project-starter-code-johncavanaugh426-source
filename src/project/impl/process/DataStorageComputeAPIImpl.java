@@ -4,7 +4,6 @@ import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -18,25 +17,24 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
     @Override
     public ProcessResult processData(ProcessRequest request) {
         try {
-            // Step 1: Read input integers
-            List<Integer> inputNumbers = request.getInputData();
-            if (inputNumbers == null || inputNumbers.isEmpty()) {
-                return new ProcessResult(false, "Input numbers are empty");
+            // Read the input data (if file path provided)
+            List<Integer> inputData = request.getInputData();
+            if (inputData == null || inputData.isEmpty()) {
+                return new ProcessResult(false, "No input numbers provided");
             }
 
-            // Step 2: Convert numbers to a comma-separated string
-            String output = inputNumbers.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(","));
+            // If output destination is specified, write results to file
+            String outputPath = request.getOutputDestination();
+            if (outputPath != null) {
+                Files.write(Paths.get(outputPath),
+                        inputData.stream()
+                                 .map(String::valueOf)
+                                 .collect(Collectors.toList()));
+            }
 
-            // Step 3: Write output to user-specified destination
-            Files.write(Paths.get(request.getOutputDestination()), output.getBytes());
-
-            return new ProcessResult(true, "Data successfully written");
-        } catch (IOException e) {
-            return new ProcessResult(false, "Error writing to file: " + e.getMessage());
+            return new ProcessResult(true, "Data processed successfully");
         } catch (Exception e) {
-            return new ProcessResult(false, "Unexpected error: " + e.getMessage());
+            return new ProcessResult(false, e.getMessage());
         }
     }
 }
