@@ -1,4 +1,5 @@
 package project.impl.conceptual;
+
 import project.api.conceptual.ComputeEngineAPI;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
@@ -34,6 +35,9 @@ public class ComputeEngineAPIImpl implements ComputeEngineAPI {
         String resultString = sequence.stream()
                                       .map(String::valueOf)
                                       .collect(Collectors.joining(","));
+
+        // Add a newline at the end of this sequence
+        resultString += "\n";
 
         return new ComputeResult(true, resultString);
     }

@@ -11,7 +11,11 @@ import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 import project.impl.conceptual.ComputeEngineAPIImpl;
 import project.impl.process.DataStorageComputeAPIImpl;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserComputeAPIImpl implements UserComputeAPI {
     private final DataStorageComputeAPI dataStore;
@@ -33,7 +37,15 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
-                    return null; 
+                    try {
+                        return Files.lines(Paths.get(request.getInputSource()))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .map(Integer::parseInt)
+                                .collect(Collectors.toList());
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to read input file: " + e.getMessage(), e);
+                    }
                 }
 
                 @Override
@@ -42,7 +54,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             };
 
-            // Ask data storage to process the request (input + output)
+            // Ask data storage to process the request
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
@@ -55,6 +67,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
 
             // Step 2: Run Collatz computation for each input number
             StringBuilder resultsBuilder = new StringBuilder();
+            String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
             for (int i = 0; i < inputs.size(); i++) {
                 int number = inputs.get(i);
 
@@ -65,9 +78,13 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                     return new UserComputeResult(false, "Computation failed for input: " + number);
                 }
 
-                resultsBuilder.append(computeResult.getSequence());
+                resultsBuilder.append("Input: ")
+                        .append(number)
+                        .append(" -> Collatz Sequence: ")
+                        .append(computeResult.getSequence());
+
                 if (i < inputs.size() - 1) {
-                    resultsBuilder.append(request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",");
+                    resultsBuilder.append(delimiter);
                 }
             }
 
