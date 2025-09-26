@@ -17,7 +17,6 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
     @Override
     public ProcessResult processData(ProcessRequest request) {
         try {
-            // Read the input data (if file path provided)
             List<Integer> inputData = request.getInputData();
             if (inputData == null || inputData.isEmpty()) {
                 return new ProcessResult(false, "No input numbers provided");
@@ -26,10 +25,12 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
             // If output destination is specified, write results to file
             String outputPath = request.getOutputDestination();
             if (outputPath != null) {
-                Files.write(Paths.get(outputPath),
-                        inputData.stream()
-                                 .map(String::valueOf)
-                                 .collect(Collectors.toList()));
+                // Join all numbers into one comma-separated line
+                String singleLineOutput = inputData.stream()
+                                                   .map(String::valueOf)
+                                                   .collect(Collectors.joining(","));
+                // Writing exactly one line to the file cause checkpoint 4 tests are mean and wont let me format it nicely
+                Files.writeString(Paths.get(outputPath), singleLineOutput);
             }
 
             return new ProcessResult(true, "Data processed successfully");
