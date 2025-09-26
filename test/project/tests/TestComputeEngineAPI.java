@@ -15,7 +15,9 @@ public class TestComputeEngineAPI {
         ComputeEngineAPI realEngine = new ComputeEngineAPIImpl();
         Assertions.assertNotNull(realEngine);
         ComputeRequest request = new ComputeRequest() {
-            @Override public int getInputNumber() { return 6; }
+            @Override public int getInputNumber() {
+                return 6;
+            }
         };
 
         ComputeResult result = realEngine.computeCollatz(request);
