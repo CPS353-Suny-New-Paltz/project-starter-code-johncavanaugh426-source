@@ -24,9 +24,15 @@ public class TestUserComputeAPI {
 
         
         UserComputeRequest request = new UserComputeRequest() {
-            @Override public String getInputSource() { return "collatzInput.txt"; }
-            @Override public String getOutputDelimiter() { return "\n"; }
-            @Override public String getOutputDestination() { return null; }
+            @Override public String getInputSource() { 
+            	return "collatzInput.txt"; 
+            	}
+            @Override public String getOutputDelimiter() {
+            	return "\n"; 
+            	}
+            @Override public String getOutputDestination() {
+            	return null; 
+            	}
         };
 
         UserComputeResult result = realApi.processInput(request);
