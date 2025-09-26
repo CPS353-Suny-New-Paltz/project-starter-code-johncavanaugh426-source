@@ -1,11 +1,11 @@
-
 package project.tests;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
 import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
@@ -14,38 +14,25 @@ import project.impl.network.UserComputeAPIImpl;
 public class TestUserComputeAPI {
 
     @Test
-    public void smokeTestUserComputeAPI() {
-        // Real object for checkpoint verification
+    public void smokeTestUserComputeAPI() throws Exception {
+        // Write a simple input file the implementation will read
+        Files.write(Paths.get("collatzInput.txt"), Arrays.asList("5", "6", "7", "10"));
+
+        // Use the real implementation (required by the checkpoint tests)
         UserComputeAPI realApi = new UserComputeAPIImpl();
         Assertions.assertNotNull(realApi);
 
-        // Mock object for smoke testing
-        UserComputeAPI mockAPI = Mockito.mock(UserComputeAPI.class);
-
-        UserComputeRequest mockRequest = new UserComputeRequest() {
-            @Override
-            public String getInputSource() {
-                return "input_data.txt";
-            }
-
-            @Override
-            public String getOutputDelimiter() {
-                return null;
-            }
-
-            @Override
-            public String getOutputDestination() {
-                return "output_data.txt";
-            }
+        
+        UserComputeRequest request = new UserComputeRequest() {
+            @Override public String getInputSource() { return "collatzInput.txt"; }
+            @Override public String getOutputDelimiter() { return "\n"; }
+            @Override public String getOutputDestination() { return null; }
         };
 
-        UserComputeResult expectedResult = new UserComputeResult(true, "mock success");
-        when(mockAPI.processInput(mockRequest)).thenReturn(expectedResult);
-
-        UserComputeResult result = mockAPI.processInput(mockRequest);
-        Assertions.assertTrue(result.isSuccess());
-        Assertions.assertEquals("mock success", result.getMessage());
-
-        verify(mockAPI).processInput(mockRequest);
+        UserComputeResult result = realApi.processInput(request);
+        Assertions.assertNotNull(result);
+        Assertions.assertTrue(result.isSuccess(), "UserComputeAPI should report success");
+        Assertions.assertTrue(result.getMessage().contains("Input: 5"), "Should include Collatz sequence for 5");
+        Assertions.assertTrue(result.getMessage().contains("Input: 10"), "Should include Collatz sequence for 10");
     }
 }
