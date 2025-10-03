@@ -33,6 +33,17 @@ public class UserComputeAPIImpl implements UserComputeAPI {
     @Override
     public UserComputeResult processInput(UserComputeRequest request) {
         try {
+            // Validation: check request object itself
+            if (request == null) {
+                return new UserComputeResult(false, "Request cannot be null");
+            }
+            if (request.getInputSource() == null || request.getInputSource().isBlank()) {
+                return new UserComputeResult(false, "Input source cannot be null or empty");
+            }
+            if (request.getOutputDestination() == null || request.getOutputDestination().isBlank()) {
+                return new UserComputeResult(false, "Output destination cannot be null or empty");
+            }
+
             // Step 1: Wrap the request into a ProcessRequest
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
@@ -54,7 +65,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             };
 
-            // Ask data storage to process the request
+            // Step 2: Ask data storage to process the request
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
@@ -65,9 +76,10 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 return new UserComputeResult(false, "No input numbers were provided");
             }
 
-            // Step 2: Run Collatz computation for each input number
+            // Step 3: Run Collatz computation for each input number
             StringBuilder resultsBuilder = new StringBuilder();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
+
             for (int i = 0; i < inputs.size(); i++) {
                 int number = inputs.get(i);
 
@@ -88,11 +100,12 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             }
 
-            // Step 3: Return result to user
+            // Step 4: Return result to user
             return new UserComputeResult(true, resultsBuilder.toString());
 
         } catch (Exception e) {
-            return new UserComputeResult(false, "Error: " + e.getMessage());
+            // catch-all protection
+            return new UserComputeResult(false, "Unexpected error: " + e.getMessage());
         }
     }
 }
