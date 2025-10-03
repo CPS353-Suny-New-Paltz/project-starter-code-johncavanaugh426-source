@@ -21,11 +21,17 @@ public class UserComputeIntegrationTest {
         UserComputeAPIImpl api = new UserComputeAPIImpl();
         UserComputeRequest request = new UserComputeRequest() {
             @Override
-            public String getInputSource() { return "nonexistent_input.txt"; }
+            public String getInputSource() { 
+            	return "nonexistent_input.txt"; 
+            	}
             @Override
-            public String getOutputDestination() { return null; }
+            public String getOutputDestination() { 
+            	return null; 
+            	}
             @Override
-            public String getOutputDelimiter() { return null; }
+            public String getOutputDelimiter() {
+            	return null; 
+            	}
         };
 
         UserComputeResult result = api.processInput(request);
@@ -46,11 +52,17 @@ public class UserComputeIntegrationTest {
         UserComputeAPIImpl api = new UserComputeAPIImpl();
         UserComputeRequest request = new UserComputeRequest() {
             @Override
-            public String getInputSource() { return "empty_input.txt"; }
+            public String getInputSource() { 
+            	return "empty_input.txt"; 
+            	}
             @Override
-            public String getOutputDestination() { return null; }
+            public String getOutputDestination() {
+            	return null; 
+            	}
             @Override
-            public String getOutputDelimiter() { return null; }
+            public String getOutputDelimiter() { 
+            	return null; 
+            	}
         };
 
         UserComputeResult result = api.processInput(request);
