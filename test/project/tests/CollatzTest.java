@@ -10,12 +10,16 @@ import project.impl.conceptual.ComputeEngineAPIImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CollatzTest {
 
     @Test
     public void testCollatzSequences() {
-        // Write the test numbers to collatzInput.txt
+        // Write test numbers into collatzInput.txt
         try (FileWriter writer = new FileWriter("collatzInput.txt")) {
             writer.write("5\n6\n7\n10\n");
         } catch (IOException e) {
@@ -28,27 +32,38 @@ public class CollatzTest {
                 new ComputeEngineAPIImpl()
         );
 
-        // Create a request that tells the implementation where to read from
+        // Request with valid input, delimiter, and output destination
         UserComputeRequest request = new UserComputeRequest() {
             @Override
             public String getInputSource() {
-                return "collatzInput.txt"; // file with numbers
+                return "collatzInput.txt";
             }
 
             @Override
             public String getOutputDelimiter() {
-                return "\n"; 
+                return "\n"; // sequences separated by newlines
             }
 
             @Override
             public String getOutputDestination() {
-                return null; 
+                return "collatzOutput.txt"; // must not be null or empty
             }
         };
 
         UserComputeResult result = userAPI.processInput(request);
 
-        // Print the result
+        // Print what we got
         System.out.println("Collatz Sequences:\n" + result.getMessage());
+
+        
+        try {
+            String fileContent = Files.readString(Paths.get("collatzOutput.txt"));
+            System.out.println("File content:\n" + fileContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+       
+        assertTrue(result.isSuccess(), "Computation should succeed");
     }
 }
