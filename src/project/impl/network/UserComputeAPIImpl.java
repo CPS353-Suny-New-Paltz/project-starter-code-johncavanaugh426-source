@@ -33,7 +33,18 @@ public class UserComputeAPIImpl implements UserComputeAPI {
     @Override
     public UserComputeResult processInput(UserComputeRequest request) {
         try {
-            // Step 1: Wrap the request into a ProcessRequest
+            // Validation checks
+            if (request == null) {
+                return new UserComputeResult(false, "Request cannot be null");
+            }
+            if (request.getInputSource() == null || request.getInputSource().trim().isEmpty()) {
+                return new UserComputeResult(false, "Input source must be provided");
+            }
+            if (!Files.exists(Paths.get(request.getInputSource()))) {
+                return new UserComputeResult(false, "Input file does not exist: " + request.getInputSource());
+            }
+
+            // Wrap the request into a ProcessRequest
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
@@ -65,7 +76,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 return new UserComputeResult(false, "No input numbers were provided");
             }
 
-            // Step 2: Run Collatz computation for each input number
+            // Run Collatz computation for each input number
             StringBuilder resultsBuilder = new StringBuilder();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
             for (int i = 0; i < inputs.size(); i++) {
@@ -88,7 +99,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             }
 
-            // Step 3: Return result to user
+            // Return result to user
             return new UserComputeResult(true, resultsBuilder.toString());
 
         } catch (Exception e) {
