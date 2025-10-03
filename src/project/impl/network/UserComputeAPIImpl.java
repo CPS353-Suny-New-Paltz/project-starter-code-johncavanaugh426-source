@@ -33,7 +33,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
     @Override
     public UserComputeResult processInput(UserComputeRequest request) {
         try {
-            // Validation: check request object itself
+            // Validation
             if (request == null) {
                 return new UserComputeResult(false, "Request cannot be null");
             }
@@ -44,7 +44,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 return new UserComputeResult(false, "Output destination cannot be null or empty");
             }
 
-            // Step 1: Wrap the request into a ProcessRequest
+            // Wrap the request
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
@@ -65,7 +65,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             };
 
-            // Step 2: Ask data storage to process the request
+            // Ask data storage to process request
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
@@ -76,35 +76,23 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 return new UserComputeResult(false, "No input numbers were provided");
             }
 
-            // Step 3: Run Collatz computation for each input number
-            StringBuilder resultsBuilder = new StringBuilder();
+            // Run Collatz computation for each input number
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
+            String resultString = inputs.stream()
+                    .map(n -> {
+                        ComputeRequest computeRequest = () -> n;
+                        ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
+                        if (!computeResult.isSuccess()) {
+                            throw new RuntimeException("Computation failed for input: " + n);
+                        }
+                        return computeResult.getSequence();
+                    })
+                    .collect(Collectors.joining(delimiter));
 
-            for (int i = 0; i < inputs.size(); i++) {
-                int number = inputs.get(i);
-
-                ComputeRequest computeRequest = () -> number;
-                ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-
-                if (!computeResult.isSuccess()) {
-                    return new UserComputeResult(false, "Computation failed for input: " + number);
-                }
-
-                resultsBuilder.append("Input: ")
-                        .append(number)
-                        .append(" -> Collatz Sequence: ")
-                        .append(computeResult.getSequence());
-
-                if (i < inputs.size() - 1) {
-                    resultsBuilder.append(delimiter);
-                }
-            }
-
-            // Step 4: Return result to user
-            return new UserComputeResult(true, resultsBuilder.toString());
+            // Return clean result
+            return new UserComputeResult(true, resultString);
 
         } catch (Exception e) {
-            // catch-all protection
             return new UserComputeResult(false, "Unexpected error: " + e.getMessage());
         }
     }
