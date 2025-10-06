@@ -99,7 +99,7 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 }
             }
 
-            // Return result to user
+            // Return result to user 
             return new UserComputeResult(true, resultsBuilder.toString());
 
         } catch (Exception e) {
