@@ -42,7 +42,7 @@ public class CollatzTest {
 
             @Override
             public String getOutputDestination() {
-                return null; 
+                return "collatzOutput.txt" ; 
             }
         };
 
