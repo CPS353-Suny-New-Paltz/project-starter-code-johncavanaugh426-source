@@ -44,44 +44,22 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                 return new UserComputeResult(false, "Input file does not exist: " + request.getInputSource());
             }
 
-            // Wrap the request into a ProcessRequest
-            ProcessRequest processRequest = new ProcessRequest() {
-                @Override
-                public List<Integer> getInputData() {
-                    try {
-                        return Files.lines(Paths.get(request.getInputSource()))
-                                .map(String::trim)
-                                .filter(s -> !s.isEmpty())
-                                .map(Integer::parseInt)
-                                .collect(Collectors.toList());
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to read input file: " + e.getMessage(), e);
-                    }
-                }
+            // Read input numbers
+            List<Integer> inputs = Files.lines(Paths.get(request.getInputSource()))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
 
-                @Override
-                public String getOutputDestination() {
-                    return request.getOutputDestination();
-                }
-            };
-
-            // Ask data storage to process the request
-            ProcessResult processResult = dataStore.processData(processRequest);
-            if (!processResult.isSuccess()) {
-                return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
-            }
-
-            List<Integer> inputs = processRequest.getInputData();
-            if (inputs == null || inputs.isEmpty()) {
+            if (inputs.isEmpty()) {
                 return new UserComputeResult(false, "No input numbers were provided");
             }
 
-            // Run Collatz computation for each input number
+            // Compute results
             StringBuilder resultsBuilder = new StringBuilder();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
-            for (int i = 0; i < inputs.size(); i++) {
-                int number = inputs.get(i);
 
+            for (int number : inputs) {
                 ComputeRequest computeRequest = () -> number;
                 ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
 
@@ -89,18 +67,46 @@ public class UserComputeAPIImpl implements UserComputeAPI {
                     return new UserComputeResult(false, "Computation failed for input: " + number);
                 }
 
-                resultsBuilder.append("Input: ")
-                        .append(number)
-                        .append(" -> Collatz Sequence: ")
-                        .append(computeResult.getSequence());
+                // Replace commas in the sequence with user delimiter
+                String sequence = computeResult.getSequence().replace(",", delimiter);
 
-                if (i < inputs.size() - 1) {
-                    resultsBuilder.append(delimiter);
-                }
+                // Each sequence on its own line
+                resultsBuilder.append(sequence).append(System.lineSeparator());
             }
 
-            // Return result to user 
-            return new UserComputeResult(true, resultsBuilder.toString());
+            // Build computed results string
+            String computedResults = resultsBuilder.toString();
+
+            // Wrap everything into a ProcessRequest for storage
+            ProcessRequest processRequest = new ProcessRequest() {
+                @Override
+                public List<Integer> getInputData() {
+                    return inputs;
+                }
+
+                @Override
+                public String getOutputDestination() {
+                    return request.getOutputDestination();
+                }
+
+                @Override
+                public String getDelimiter() {
+                    return delimiter;
+                }
+
+                @Override
+                public String getComputedResults() {
+                    return computedResults;
+                }
+            };
+
+            // Ask data storage to write results
+            ProcessResult processResult = dataStore.processData(processRequest);
+            if (!processResult.isSuccess()) {
+                return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
+            }
+
+            return new UserComputeResult(true, "Computation and storage completed successfully");
 
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());

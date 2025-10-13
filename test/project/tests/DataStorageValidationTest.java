@@ -24,13 +24,23 @@ public class DataStorageValidationTest {
 
             @Override
             public String getOutputDestination() {
-                return null;
+                // Give it a dummy file name so null check passes
+                return "test_output.txt";
+            }
+
+            @Override
+            public String getDelimiter() {
+                return ",";
+            }
+
+            @Override
+            public String getComputedResults() {
+                return "";
             }
         };
 
         ProcessResult result = storageApi.processData(emptyRequest);
 
-        // Debug print
         System.out.println("Empty list test message: " + result.getMessage());
 
         Assertions.assertFalse(result.isSuccess());
@@ -48,15 +58,26 @@ public class DataStorageValidationTest {
                 return List.of(5, 10, 15);
             }
 
-            @Override 
+            @Override
             public String getOutputDestination() {
-                return null; // no output file
+                // Same dummy path — ensures validation passes
+                return "test_output.txt";
+            }
+
+            @Override
+            public String getDelimiter() {
+                return ",";
+            }
+
+            @Override
+            public String getComputedResults() {
+                // placeholder for computed output
+                return "5,10,15";
             }
         };
 
         ProcessResult result = storageApi.processData(validRequest);
 
-        // Debug print
         System.out.println("Valid list test message: " + result.getMessage());
 
         Assertions.assertTrue(result.isSuccess());
