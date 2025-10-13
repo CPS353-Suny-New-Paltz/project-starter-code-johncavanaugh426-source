@@ -37,12 +37,12 @@ public class CollatzTest {
 
             @Override
             public String getOutputDelimiter() {
-                return "\n"; 
+                return "$"; 
             }
 
             @Override
             public String getOutputDestination() {
-                return null; 
+                return "collatzOutput.txt"; 
             }
         };
 

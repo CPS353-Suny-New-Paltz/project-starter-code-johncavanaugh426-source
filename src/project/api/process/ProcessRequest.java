@@ -5,4 +5,6 @@ import java.util.List;
 public interface ProcessRequest {
     List<Integer> getInputData();        
     String getOutputDestination();       
+    String getDelimiter();               
+    String getComputedResults();         
 }

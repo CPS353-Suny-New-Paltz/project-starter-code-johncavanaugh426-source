@@ -6,6 +6,7 @@ import project.api.process.ProcessResult;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,19 +29,34 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
             }
 
             String outputPath = request.getOutputDestination();
-            if (outputPath != null) {
-                if (outputPath.trim().isEmpty()) {
-                    return new ProcessResult(false, "Output destination cannot be empty string");
-                }
-                // Join numbers into one line
-                String singleLineOutput = inputData.stream()
-                                                   .map(String::valueOf)
-                                                   .collect(Collectors.joining(","));
-                // Write output
-                Files.writeString(Paths.get(outputPath), singleLineOutput);
+            if (outputPath == null || outputPath.trim().isEmpty()) {
+                return new ProcessResult(false, "Output destination cannot be null or empty");
             }
 
+            // Get delimiter and computed results
+            String delimiter = request.getDelimiter() != null ? request.getDelimiter() : ",";
+            String results = request.getComputedResults();
+
+            // Fallback: if computed results aren't provided, use input numbers
+            if (results == null || results.isEmpty()) {
+                results = inputData.stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(delimiter));
+            }
+
+            results = results.replace("\r\n", "\n");
+            List<String> cleanedLines = Arrays.stream(results.split("\n"))
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .toList();
+
+            String cleanOutput = String.join("\n", cleanedLines) + "\n";
+            Files.writeString(Paths.get(outputPath), cleanOutput);
+            System.out.println("Computation Results: ");
+            System.out.print(cleanOutput);
+
             return new ProcessResult(true, "Data processed successfully");
+
         } catch (Exception e) {
             return new ProcessResult(false, "Data storage error: " + e.getMessage());
         }
