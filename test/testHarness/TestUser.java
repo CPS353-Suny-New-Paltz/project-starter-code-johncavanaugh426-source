@@ -20,22 +20,7 @@ public class TestUser {
         String inputPath = "test" + File.separator + "testInputFile.test";
 
         // TODO 4: call coordinator to run compute job
-        UserComputeRequest request = new UserComputeRequest() {
-            @Override
-            public String getInputSource() {
-                return inputPath;
-            }
-
-            @Override
-            public String getOutputDestination() {
-                return outputPath;
-            }
-
-            @Override
-            public String getOutputDelimiter() { 
-                return delimiter;
-            }
-        };
+        UserComputeRequest request = new MyUserComputeRequest(inputPath, outputPath, delimiter);
 
         UserComputeResult result = coordinator.processInput(request);
 
@@ -43,6 +28,35 @@ public class TestUser {
             System.err.println("Computation failed: " + result.getMessage());
         } else {
             System.out.println("Computation completed: output written to " + outputPath);
+        }
+    }
+
+    
+    private static class MyUserComputeRequest implements UserComputeRequest {
+
+        private final String inputSource;
+        private final String outputDestination;
+        private final String outputDelimiter;
+
+        public MyUserComputeRequest(String inputSource, String outputDestination, String outputDelimiter) {
+            this.inputSource = inputSource;
+            this.outputDestination = outputDestination;
+            this.outputDelimiter = outputDelimiter;
+        }
+
+        @Override
+        public String getInputSource() {
+            return inputSource;
+        }
+
+        @Override
+        public String getOutputDestination() {
+            return outputDestination;
+        }
+
+        @Override
+        public String getOutputDelimiter() {
+            return outputDelimiter;
         }
     }
 }
