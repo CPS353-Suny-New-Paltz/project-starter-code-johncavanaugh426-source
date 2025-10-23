@@ -6,26 +6,30 @@ import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
 
-import java.util.Collections;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class DataStorageValidationTest {
 
-    // Test that validation fails if input list is empty
     @Test
-    public void testEmptyListValidationFails() {
+    public void testEmptyFileValidationFails() throws IOException {
         DataStorageComputeAPIImpl storageApi = new DataStorageComputeAPIImpl();
+
+        // Create an empty temporary input file
+        Path inputFile = Files.createTempFile("empty_input", ".txt");
+        Path outputFile = Files.createTempFile("output", ".txt");
 
         ProcessRequest emptyRequest = new ProcessRequest() {
             @Override
             public List<Integer> getInputData() {
-                return Collections.emptyList();
+                return null; // no longer used
             }
 
             @Override
             public String getOutputDestination() {
-                // Give it a dummy file name so null check passes
-                return "test_output.txt";
+                return outputFile.toString();
             }
 
             @Override
@@ -37,31 +41,39 @@ public class DataStorageValidationTest {
             public String getComputedResults() {
                 return "";
             }
+
+            @Override
+            public String getInputSource() {
+                return inputFile.toString();
+            }
         };
 
         ProcessResult result = storageApi.processData(emptyRequest);
 
-        System.out.println("Empty list test message: " + result.getMessage());
+        System.out.println("Empty file test message: " + result.getMessage());
 
         Assertions.assertFalse(result.isSuccess());
         Assertions.assertTrue(result.getMessage().contains("No input numbers provided"));
     }
 
-    // Test that validation succeeds with valid data
     @Test
-    public void testValidListPassesValidation() {
+    public void testValidFilePassesValidation() throws IOException {
         DataStorageComputeAPIImpl storageApi = new DataStorageComputeAPIImpl();
+
+        // Create temp input file with some numbers
+        Path inputFile = Files.createTempFile("valid_input", ".txt");
+        Path outputFile = Files.createTempFile("output", ".txt");
+        Files.writeString(inputFile, "5\n10\n15\n");
 
         ProcessRequest validRequest = new ProcessRequest() {
             @Override
             public List<Integer> getInputData() {
-                return List.of(5, 10, 15);
+                return null; // handled by file reading now
             }
 
             @Override
             public String getOutputDestination() {
-                // Same dummy path — ensures validation passes
-                return "test_output.txt";
+                return outputFile.toString();
             }
 
             @Override
@@ -71,14 +83,18 @@ public class DataStorageValidationTest {
 
             @Override
             public String getComputedResults() {
-                // placeholder for computed output
-                return "5,10,15";
+                return null;
+            }
+
+            @Override
+            public String getInputSource() {
+                return inputFile.toString();
             }
         };
 
         ProcessResult result = storageApi.processData(validRequest);
 
-        System.out.println("Valid list test message: " + result.getMessage());
+        System.out.println("Valid file test message: " + result.getMessage());
 
         Assertions.assertTrue(result.isSuccess());
         Assertions.assertEquals("Data processed successfully", result.getMessage());

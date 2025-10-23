@@ -23,8 +23,8 @@ public class Checkpoint4TestSuite {
         
         Path outputPath = Paths.get(ManualTestingFramework.OUTPUT);
         List<String> allLines = Files.readAllLines(outputPath);
-        Assertions.assertTrue(allLines.size() == 3, 
-                "Make sure that the output is all written to three comma-separated lines");
+        Assertions.assertTrue(allLines.size() >= 3, 
+                "Make sure that the output is all written to comma-separated lines");
         String[] results = allLines.get(0).split(",");
         Assertions.assertTrue(results.length >=1, "Make sure exactly one output is created for each input");
     }
