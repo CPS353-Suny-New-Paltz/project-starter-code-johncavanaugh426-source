@@ -1,4 +1,4 @@
-package testharness;
+package testHarness;
 
 import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
