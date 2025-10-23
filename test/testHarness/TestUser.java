@@ -16,7 +16,7 @@ public class TestUser {
     }
 
     public void run(String outputPath) {
-        String delimiter = ";"; // changed to String
+        String delimiter = ";"; // unchanged
         String inputPath = "test" + File.separator + "testInputFile.test";
 
         // TODO 4: call coordinator to run compute job
