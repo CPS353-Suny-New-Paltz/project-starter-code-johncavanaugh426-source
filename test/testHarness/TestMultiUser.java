@@ -41,9 +41,9 @@ public class TestMultiUser {
         }
 
         // Run single-threaded
-        String singleThreadFilePrefix = "testMultiUser.compareMultiAndSingleThreaded.test.singleThreadOut.tmp";
+        String sFilePrefix = "testMultiUser.compareMultiAndSingleThreaded.test.singleThreadOut.tmp";
         for (int i = 0; i < nThreads; i++) {
-            File singleThreadedOut = new File(singleThreadFilePrefix + i);
+            File singleThreadedOut = new File(sFilePrefix + i);
             singleThreadedOut.deleteOnExit();
             testUsers.get(i).run(singleThreadedOut.getCanonicalPath());
         }
@@ -51,13 +51,13 @@ public class TestMultiUser {
         // Run multi-threaded
         ExecutorService threadPool = Executors.newCachedThreadPool();
         List<Future<?>> results = new ArrayList<>();
-        String multiThreadFilePrefix = "testMultiUser.compareMultiAndSingleThreaded.test.multiThreadOut.tmp";
+        String mFilePrefix = "testMultiUser.compareMultiAndSingleThreaded.test.multiThreadOut.tmp";
         for (int i = 0; i < nThreads; i++) {
-            File multiThreadedOut = new File(multiThreadFilePrefix + i);
+            File multiThreadedOut = new File(mFilePrefix + i);
             multiThreadedOut.deleteOnExit();
-            String multiThreadOutputPath = multiThreadedOut.getCanonicalPath();
+            String mFilePath = multiThreadedOut.getCanonicalPath();
             TestUser testUser = testUsers.get(i);
-            results.add(threadPool.submit(() -> testUser.run(multiThreadOutputPath)));
+            results.add(threadPool.submit(() -> testUser.run(mFilePath)));
         }
 
         results.forEach(future -> {
@@ -69,8 +69,8 @@ public class TestMultiUser {
         });
 
         // Check that the output is the same for multi-threaded and single-threaded
-        List<String> singleThreaded = loadAllOutput(singleThreadFilePrefix, nThreads);
-        List<String> multiThreaded = loadAllOutput(multiThreadFilePrefix, nThreads);
+        List<String> singleThreaded = loadAllOutput(sFilePrefix, nThreads);
+        List<String> multiThreaded = loadAllOutput(mFilePrefix, nThreads);
         assertEquals(singleThreaded, multiThreaded);
     }
 
