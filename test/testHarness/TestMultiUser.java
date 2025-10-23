@@ -1,4 +1,4 @@
-package testHarness;
+package testharness;
 
 import project.api.network.UserComputeAPI;
 import project.impl.network.UserComputeAPIImpl;
@@ -19,12 +19,12 @@ import org.junit.jupiter.api.Test;
 
 public class TestMultiUser {
 
-    // TODO 1 fixed: use your @NetworkAPI interface type
+    // TODO 1 fixed: use the @NetworkAPI interface type
     private UserComputeAPI coordinator;
 
     @BeforeEach
     public void initializeComputeEngine() {
-        // TODO 2 fixed: instantiate the implementation of your @NetworkAPI
+        // TODO 2 fixed: instantiate the implementation of the network api
         coordinator = new UserComputeAPIImpl();
     }
 
