@@ -7,4 +7,7 @@ public interface ProcessRequest {
     String getOutputDestination();       
     String getDelimiter();               
     String getComputedResults();         
+
+    // new method to move file reading into the process layer
+    String getInputSource();
 }

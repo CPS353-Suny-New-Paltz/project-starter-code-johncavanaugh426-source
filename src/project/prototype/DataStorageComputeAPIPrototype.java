@@ -32,6 +32,12 @@ public class DataStorageComputeAPIPrototype {
             public String getComputedResults() {
                 return "Input: 6 -> Collatz Sequence: 6,3,10,5,16,8,4,2,1";
             }
+
+            
+            @Override
+            public String getInputSource() {
+                return null; // not used in this prototype
+            }
         };
 
         System.out.println("Mock processing input: " + mockRequest.getInputData());
