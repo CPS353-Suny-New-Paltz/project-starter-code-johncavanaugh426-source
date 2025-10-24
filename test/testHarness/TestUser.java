@@ -14,9 +14,9 @@ public class TestUser {
     public TestUser(UserComputeAPI coordinator) {
         this.coordinator = coordinator;
     }
-
+ 
     public void run(String outputPath) {
-        String delimiter = ";"; // unchanged
+        String delimiter = ";"; 
         String inputPath = "test" + File.separator + "testInputFile.test";
 
         // TODO 4: call coordinator to run compute job
