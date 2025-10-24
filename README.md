@@ -1,5 +1,4 @@
 # John_Cavanaugh_Software_Engineering
-Part 1 of Checkpoint 2:
 
 The computation I chose is the Collatz Sequence: 
 This sequence takes in a positive integer n and follows these rules:
@@ -12,5 +11,7 @@ The output is a string of all the numbers seen during the computation
 Example input and output:
 Input: 6
 Output: 6,3,10,5,16,8,4,2,1
+
+The current thread limit is 5
 
 ![System Diagram](https://github.com/CPS353-Suny-New-Paltz/project-starter-code-johncavanaugh426-source/blob/main/Part2Checkpoint2.png?raw=true)
