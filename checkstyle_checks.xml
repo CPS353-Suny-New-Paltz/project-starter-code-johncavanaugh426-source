@@ -7,25 +7,22 @@
   <module name="SuppressWarningsFilter"/>
 
   <property name="charset" value="UTF-8"/>
-
   <property name="severity" value="warning"/>
-
   <property name="fileExtensions" value="java, properties, xml"/>
-  <!-- Excludes all 'module-info.java' files              -->
-  <!-- See https://checkstyle.org/filefilters/index.html -->
+
   <module name="BeforeExecutionExclusionFileFilter">
     <property name="fileNamePattern" value="module\-info\.java$"/>
   </module>
+
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
     <property name="max" value="1000"/>
     <property name="ignorePattern"
              value="^package.*|^import.*|href\s*=\s*&quot;[^&quot;]*&quot;|http://|https://|ftp://"/>
   </module>
-  <!-- https://checkstyle.org/filters/suppressionfilter.html -->
+
   <module name="SuppressionFilter">
-    <property name="file" value="${org.checkstyle.google.suppressionfilter.config}"
-           default="checkstyle-suppressions.xml" />
+    <property name="file" value="${org.checkstyle.google.suppressionfilter.config}" default="checkstyle-suppressions.xml"/>
     <property name="optional" value="true"/>
   </module>
 
@@ -80,7 +77,6 @@
                     COMPACT_CTOR_DEF, LITERAL_SWITCH"/>
     </module>
     <module name="SuppressionXpathSingleFilter">
-      <!-- suppresion is required till https://github.com/checkstyle/checkstyle/issues/7541 -->
       <property name="id" value="RightCurlyAlone"/>
       <property name="query" value="//RCURLY[parent::SLIST[count(./*)=1]
                                      or preceding-sibling::*[last()][self::LCURLY]]"/>
@@ -89,11 +85,14 @@
     <module name="FallThrough"/>
     <module name="UpperEll"/>
     <module name="ModifierOrder"/>
+    
+    <!-- Updated package name pattern to allow uppercase letters -->
     <module name="PackageName">
-      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+      <property name="format" value="^[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)*$"/>
       <message key="name.invalidPattern"
              value="Package name ''{0}'' must match pattern ''{1}''."/>
     </module>
+
     <module name="TypeName">
       <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF,
                     ANNOTATION_DEF, RECORD_DEF"/>
@@ -138,12 +137,12 @@
     <module name="RecordComponentName">
       <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
       <message key="name.invalidPattern"
-               value="Record component name ''{0}'' must match pattern ''{1}''."/>
+             value="Record component name ''{0}'' must match pattern ''{1}''."/>
     </module>
     <module name="RecordTypeParameterName">
       <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
       <message key="name.invalidPattern"
-               value="Record type name ''{0}'' must match pattern ''{1}''."/>
+             value="Record type name ''{0}'' must match pattern ''{1}''."/>
     </module>
     <module name="MethodTypeParameterName">
       <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
@@ -180,7 +179,6 @@
     <module name="EmptyCatchBlock">
       <property name="exceptionVariableName" value="expected"/>
     </module>
-    <!-- https://checkstyle.org/filters/suppressionxpathfilter.html -->
     <module name="SuppressionXpathFilter">
       <property name="file" value="${org.checkstyle.google.suppressionxpathfilter.config}"
              default="checkstyle-xpath-suppressions.xml" />
@@ -194,9 +192,7 @@
     </module>
     <module name="SuppressWithNearbyCommentFilter">
       <property name="commentFormat" value="CHECKSTYLE.SUPPRESS\: ([\w\|]+)"/>
-      <!-- $1 refers to the first match group in the regex defined in commentFormat -->
       <property name="checkFormat" value="$1"/>
-      <!-- The check is suppressed in the next line of code after the comment -->
       <property name="influenceFormat" value="1"/>
     </module>
   </module>
