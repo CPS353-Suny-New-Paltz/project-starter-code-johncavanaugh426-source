@@ -71,11 +71,15 @@ dependencies {
     // gRPC / protobuf
     implementation "io.grpc:grpc-protobuf:${grpcVersion}"
     implementation "io.grpc:grpc-stub:${grpcVersion}"
-    implementation "io.grpc:grpc-services:${grpcVersion}" 
     runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
 }
 
 test {
     useJUnitPlatform()
+}
+
+// Ensure proto files are generated before compiling Java
+tasks.named('compileJava') {
+    dependsOn 'generateProto'
 }
