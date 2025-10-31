@@ -1,9 +1,7 @@
 package project.grpc;
-
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package project.grpc;
+
+option java_package = "project.grpc";
+option java_multiple_files = true;
+
+// Request for processing data
+message ProcessDataRequest {
+  string input_source = 1;       
+  string output_destination = 2;   
+  string output_delimiter = 3;     
+}
+
+// Result of processing
+message ProcessDataResult {
+  bool success = 1;
+  string message = 2;
+}
+
+// Service for the data store / process layer
+service ProcessComputeService {
+  rpc ProcessData(ProcessDataRequest) returns (ProcessDataResult);
+}
