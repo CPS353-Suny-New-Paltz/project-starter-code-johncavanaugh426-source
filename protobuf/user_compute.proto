@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+package project.grpc;
+
+option java_package = "project.grpc";
+option java_multiple_files = true;
+
+service UserComputeService {
+  rpc ProcessInput(UserComputeRequestMessage) returns (UserComputeResultMessage);
+}
+
+message UserComputeRequestMessage {
+  required string input_source = 1;
+  required string output_destination = 2;
+  optional string output_delimiter = 3;
+}
+
+message UserComputeResultMessage {
+  required bool success = 1;
+  optional string message = 2;
+}
