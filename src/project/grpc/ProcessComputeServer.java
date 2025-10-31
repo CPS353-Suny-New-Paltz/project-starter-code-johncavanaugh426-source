@@ -1,7 +1,8 @@
 package project.grpc;
 
+import io.grpc.Grpc;
+import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
-import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.protobuf.services.ProtoReflectionService;
 
 import java.io.IOException;
@@ -12,9 +13,10 @@ public class ProcessComputeServer {
     private Server server;
 
     private void start() throws IOException {
-        int port = 50052;
+        int port = 50052; // port for the process/data-store service
 
-        server = NettyServerBuilder.forPort(port)
+        // Build and start the gRPC server
+        server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                 .addService(new ProcessComputeServiceImpl())
                 .addService(ProtoReflectionService.newInstance())
                 .build()
@@ -22,17 +24,23 @@ public class ProcessComputeServer {
 
         System.out.println("ProcessComputeServer started on port " + port);
 
+        // Graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.err.println("*** Shutting down gRPC server since JVM is shutting down");
+            System.err.println("*** Shutting down ProcessComputeServer since JVM is shutting down");
             try {
-                if (server != null) {
-                    server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
-                }
+                ProcessComputeServer.this.stop();
             } catch (InterruptedException e) {
                 e.printStackTrace(System.err);
             }
-            System.err.println("*** Server shut down");
+            System.err.println("*** ProcessComputeServer shut down");
         }));
+    }
+
+    private void stop() throws InterruptedException {
+        if (server != null) {
+            System.out.println("ProcessComputeServer stopping...");
+            server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+        }
     }
 
     private void blockUntilShutdown() throws InterruptedException {
@@ -42,6 +50,7 @@ public class ProcessComputeServer {
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.println("Starting ProcessComputeServer...");
         ProcessComputeServer server = new ProcessComputeServer();
         server.start();
         server.blockUntilShutdown();
