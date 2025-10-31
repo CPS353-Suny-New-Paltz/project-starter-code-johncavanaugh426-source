@@ -1,50 +1,61 @@
 package project.grpc;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import project.api.network.UserComputeAPI;
-import project.api.network.UserComputeRequest;
-import project.api.network.UserComputeResult;
-import project.impl.network.UserComputeAPIImpl;
+import java.util.concurrent.TimeUnit;
 
 public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeServiceImplBase {
 
-    private final UserComputeAPI userComputeAPI;
+    private final ManagedChannel channel;
+    private final ProcessComputeServiceGrpc.ProcessComputeServiceBlockingStub stub;
 
-    public UserComputeServiceImpl() {
-        this.userComputeAPI = new UserComputeAPIImpl();
+    // Connect to process server on localhost:50052
+    public UserComputeServiceImpl(String target) {
+        channel = ManagedChannelBuilder.forTarget(target)
+                .usePlaintext()
+                .build();
+        stub = ProcessComputeServiceGrpc.newBlockingStub(channel);
+        System.out.println("UserComputeServiceImpl: Connected to process server at " + target);
     }
 
+    // Handle incoming user compute requests
     @Override
-    public void processInput(UserComputeRequestMessage request, StreamObserver<UserComputeResultMessage> responseObserver) {
-        // Wrap protobuf request into the internal UserComputeRequest
-        UserComputeRequest internalRequest = new UserComputeRequest() {
-            @Override
-            public String getInputSource() {
-                return request.getInputSource();
-            }
+    public void processInput(UserComputeRequestMessage request,
+                             StreamObserver<UserComputeResultMessage> responseObserver) {
 
-            @Override
-            public String getOutputDelimiter() {
-                return request.hasOutputDelimiter() ? request.getOutputDelimiter() : ",";
-            }
+        System.out.println("UserComputeServiceImpl: Received request from client.");
 
-            @Override
-            public String getOutputDestination() {
-                return request.getOutputDestination();
-            }
-        };
+        // Build process request for the data store
+        ProcessDataRequest processRequest = ProcessDataRequest.newBuilder()
+                .setInputSource(request.getInputSource())
+                .setOutputDestination(request.getOutputDestination())
+                .setOutputDelimiter(request.getOutputDelimiter())
+                .build();
 
-        // Call your API
-        UserComputeResult result = userComputeAPI.processInput(internalRequest);
+        System.out.println("UserComputeServiceImpl: Forwarding request to process server...");
 
-        // Wrap internal result into protobuf
+        // Call process server
+        ProcessDataResult result = stub.processData(processRequest);
+
+        System.out.println("UserComputeServiceImpl: Received response from process server.");
+
+        // Build and send response to user
         UserComputeResultMessage response = UserComputeResultMessage.newBuilder()
-                .setSuccess(result.isSuccess())
+                .setSuccess(result.getSuccess())
                 .setMessage(result.getMessage())
                 .build();
 
-        // Send response
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+
+        System.out.println("UserComputeServiceImpl: Sent response back to client.");
+    }
+
+    // close the channel
+    public void shutdown() throws InterruptedException {
+        if (channel != null && !channel.isShutdown()) {
+            channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        }
     }
 }
