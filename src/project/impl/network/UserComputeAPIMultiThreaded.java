@@ -10,17 +10,9 @@ import project.impl.process.DataStorageComputeAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
 import project.impl.conceptual.ComputeEngineAPIImpl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-// Multi-threaded implementation of UserComputeAPI that delegates to the
- // DataStorageComputeAPI concurrently. Thread pool is fixed at THREAD_LIMIT.
+// Multi-threaded version that delegates one computation job to the data store,
+// which internally handles parallel processing across threads.
 public class UserComputeAPIMultiThreaded implements UserComputeAPI {
-
-    private static final int THREAD_LIMIT = 5;
 
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
@@ -36,7 +28,6 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
 
     @Override
     public UserComputeResult processInput(UserComputeRequest request) {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
         try {
             if (request == null) {
                 return new UserComputeResult(false, "Request cannot be null");
@@ -50,8 +41,8 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
             // Build ProcessRequest that the DataStorage layer expects
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
-                public List<Integer> getInputData() {
-                    return null; // handled by process layer
+                public java.util.List<Integer> getInputData() {
+                    return null; // handled by data store
                 }
 
                 @Override
@@ -75,27 +66,18 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
                 }
             };
 
-            // Submit THREAD_LIMIT concurrent tasks that each call the dataStore.processData
-            List<Future<ProcessResult>> futures = new ArrayList<>();
-            for (int i = 0; i < THREAD_LIMIT; i++) {
-                futures.add(executor.submit(() -> dataStore.processData(processRequest)));
+            // Call data store ONCE — it handles multi-threading internally
+            ProcessResult processResult = dataStore.processData(processRequest);
+
+            if (processResult == null || !processResult.isSuccess()) {
+                String msg = processResult == null ? "null ProcessResult" : processResult.getMessage();
+                return new UserComputeResult(false, "Data processing failed: " + msg);
             }
 
-            // Wait for all tasks to complete and check results
-            for (Future<ProcessResult> future : futures) {
-                ProcessResult pr = future.get();
-                if (pr == null || !pr.isSuccess()) {
-                    String msg = pr == null ? "null ProcessResult" : pr.getMessage();
-                    return new UserComputeResult(false, "Thread failed: " + msg);
-                }
-            }
-
-            return new UserComputeResult(true, "All threads completed successfully");
+            return new UserComputeResult(true, "Multi-threaded computation completed successfully");
 
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());
-        } finally {
-            executor.shutdown();
         }
     }
 }

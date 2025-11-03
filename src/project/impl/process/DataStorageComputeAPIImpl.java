@@ -10,11 +10,17 @@ import project.impl.conceptual.ComputeEngineAPIImpl;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+// Multi-threaded implementation that divides computation across threads for one full run
 public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
 
+    private static final int THREAD_LIMIT = 5;
     private final ComputeEngineAPI computeEngine = new ComputeEngineAPIImpl();
 
     @Override
@@ -32,7 +38,7 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
                 return new ProcessResult(false, "Input file does not exist: " + inputPath);
             }
 
-            // Read input numbers directly from file
+            // Read input numbers from file
             List<Integer> inputData = Files.lines(Paths.get(inputPath))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
@@ -49,27 +55,36 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
             }
 
             String delimiter = request.getDelimiter() != null ? request.getDelimiter() : ",";
-            StringBuilder resultBuilder = new StringBuilder();
 
-            // Compute Collatz sequences for each number
+            ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
+            List<Future<String>> results = new ArrayList<>();
+
+            // Split computation across multiple threads
             for (int number : inputData) {
-                ComputeRequest computeRequest = () -> number;
-                ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-
-                if (!computeResult.isSuccess()) {
-                    return new ProcessResult(false, "Computation failed for input: " + number);
-                }
-
-                // Replace commas with user’s chosen delimiter
-                String sequence = computeResult.getSequence().replace(",", delimiter);
-                resultBuilder.append(sequence).append(System.lineSeparator());
+                results.add(executor.submit(() -> {
+                    ComputeRequest computeRequest = () -> number;
+                    ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
+                    if (!computeResult.isSuccess()) {
+                        throw new RuntimeException("Computation failed for " + number);
+                    }
+                    String seq = computeResult.getSequence().replace(",", delimiter);
+                    System.out.println("Thread " + Thread.currentThread().getName() + " processed: " + number);
+                    return seq;
+                }));
             }
+
+            // Collect results
+            StringBuilder resultBuilder = new StringBuilder();
+            for (Future<String> f : results) {
+                resultBuilder.append(f.get()).append(System.lineSeparator());
+            }
+
+            executor.shutdown();
 
             // Write results to file
             String finalOutput = resultBuilder.toString().trim() + System.lineSeparator();
             Files.writeString(Paths.get(outputPath), finalOutput);
 
-            // Also print to console for visibility
             System.out.println("Computation Results:");
             System.out.print(finalOutput);
 
