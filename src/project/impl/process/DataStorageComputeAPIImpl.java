@@ -24,12 +24,13 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
 
     @Override
     public ProcessResult processData(ProcessRequest request) {
-
         try {
+            // Validate request object
             if (request == null) {
                 return new ProcessResult(false, "Request cannot be null");
             }
 
+            // Validate input source
             String inputPath = request.getInputSource();
             if (inputPath == null || inputPath.trim().isEmpty()) {
                 return new ProcessResult(false, "Input source cannot be null or empty");
@@ -49,17 +50,19 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
                 return new ProcessResult(false, "No input numbers provided");
             }
 
+            // Validate output destination
             String outputPath = request.getOutputDestination();
             if (outputPath == null || outputPath.trim().isEmpty()) {
                 return new ProcessResult(false, "Output destination cannot be null or empty");
             }
 
+            // Delimiter for output
             String delimiter = request.getDelimiter() != null ? request.getDelimiter() : ",";
 
+            // Multithreaded computation
             ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
             List<Future<String>> results = new ArrayList<>();
 
-            // Submit tasks
             for (int number : inputData) {
                 results.add(executor.submit(() -> {
                     ComputeRequest computeRequest = () -> number;
