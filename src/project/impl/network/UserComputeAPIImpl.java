@@ -17,47 +17,38 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UserComputeAPIImpl implements UserComputeAPI
-{
+public class UserComputeAPIImpl implements UserComputeAPI {
 
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
 
-    public UserComputeAPIImpl()
-    {
+    public UserComputeAPIImpl() {
         this(new DataStorageComputeAPIImpl(), new ComputeEngineAPIImpl());
     }
 
-    public UserComputeAPIImpl(DataStorageComputeAPI dataStore, ComputeEngineAPI computeEngine)
-    {
+    public UserComputeAPIImpl(DataStorageComputeAPI dataStore, ComputeEngineAPI computeEngine) {
         this.dataStore = dataStore;
         this.computeEngine = computeEngine;
     }
 
     @Override
-    public UserComputeResult processInput(UserComputeRequest request)
-    {
-        try
-        {
-            if (request == null)
-            {
+    public UserComputeResult processInput(UserComputeRequest request) {
+        try {
+            if (request == null) {
                 return new UserComputeResult(false, "Request cannot be null");
             }
 
             String inputPath = request.getInputSource();
-            if (inputPath == null || inputPath.trim().isEmpty())
-            {
+            if (inputPath == null || inputPath.trim().isEmpty()) {
                 return new UserComputeResult(false, "Input source must be provided");
             }
 
-            if (!Files.exists(Paths.get(inputPath)))
-            {
+            if (!Files.exists(Paths.get(inputPath))) {
                 return new UserComputeResult(false, "Input file does not exist: " + inputPath);
             }
 
             String outputPath = request.getOutputDestination();
-            if (outputPath == null || outputPath.trim().isEmpty())
-            {
+            if (outputPath == null || outputPath.trim().isEmpty()) {
                 return new UserComputeResult(false, "Output destination must be provided");
             }
 
@@ -69,20 +60,16 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
 
-            if (inputData.isEmpty())
-            {
+            if (inputData.isEmpty()) {
                 return new UserComputeResult(false, "No input numbers provided");
             }
 
             StringBuilder finalOutput = new StringBuilder();
-            for (int number : inputData)
-            {
+            for (int number : inputData) {
                 ComputeRequest computeRequest = () -> number;
-
                 ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
 
-                if (!computeResult.isSuccess())
-                {
+                if (!computeResult.isSuccess()) {
                     return new UserComputeResult(false, "Computation failed for number: " + number);
                 }
 
@@ -90,50 +77,41 @@ public class UserComputeAPIImpl implements UserComputeAPI
                     .append(System.lineSeparator());
             }
 
-            ProcessRequest processRequest = new ProcessRequest()
-            {
+            ProcessRequest processRequest = new ProcessRequest() {
                 @Override
-                public List<Integer> getInputData()
-                {
+                public List<Integer> getInputData() {
                     return null;
                 }
 
                 @Override
-                public String getOutputDestination()
-                {
+                public String getOutputDestination() {
                     return outputPath;
                 }
 
                 @Override
-                public String getDelimiter()
-                {
+                public String getDelimiter() {
                     return delimiter;
                 }
 
                 @Override
-                public String getComputedResults()
-                {
+                public String getComputedResults() {
                     return finalOutput.toString();
                 }
 
                 @Override
-                public String getInputSource()
-                {
+                public String getInputSource() {
                     return inputPath;
                 }
             };
 
             ProcessResult processResult = dataStore.processData(processRequest);
-
-            if (!processResult.isSuccess())
-            {
+            if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
+            } else {
+                return new UserComputeResult(true, "Computation and storage completed successfully");
             }
 
-            return new UserComputeResult(true, "Computation and storage completed successfully");
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());
         }
     }
