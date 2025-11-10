@@ -50,6 +50,12 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 return new UserComputeResult(false, "Input source must be provided");
             }
 
+            // Check if input file exists
+            if (!Files.exists(Paths.get(inputPath)))
+            {
+                return new UserComputeResult(false, "Input file does not exist: " + inputPath);
+            }
+
             String outputPath = request.getOutputDestination();
             if (outputPath == null || outputPath.trim().isEmpty())
             {
@@ -58,7 +64,7 @@ public class UserComputeAPIImpl implements UserComputeAPI
 
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Read input numbers from file
+            // Read input numbers
             List<Integer> inputData = Files.lines(Paths.get(inputPath))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -70,14 +76,11 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 return new UserComputeResult(false, "No input numbers provided");
             }
 
-            // Compute results for each number
+            // Compute results
             StringBuilder finalOutput = new StringBuilder();
             for (int number : inputData)
             {
-                ComputeRequest computeRequest = () ->
-                {
-                    return number;
-                };
+                ComputeRequest computeRequest = () -> number;
 
                 ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
 
@@ -90,7 +93,7 @@ public class UserComputeAPIImpl implements UserComputeAPI
                     .append(System.lineSeparator());
             }
 
-            // Build ProcessRequest with computed results
+            // Build ProcessRequest for data storage
             ProcessRequest processRequest = new ProcessRequest()
             {
                 @Override
@@ -124,7 +127,6 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 }
             };
 
-            // Write output via data storage
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess())
             {

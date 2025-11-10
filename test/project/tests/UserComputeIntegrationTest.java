@@ -27,7 +27,7 @@ public class UserComputeIntegrationTest {
 
             @Override
             public String getOutputDestination() {
-                return "output.txt"; // provide a dummy output to satisfy API
+                return "dummy_output.txt"; // dummy file to satisfy API
             }
 
             @Override
@@ -64,7 +64,7 @@ public class UserComputeIntegrationTest {
 
             @Override
             public String getOutputDestination() {
-                return "output.txt"; // provide dummy output
+                return "dummy_output.txt"; // dummy output file
             }
 
             @Override
