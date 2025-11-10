@@ -44,7 +44,8 @@ public class ComputeEngineBenchmarkTest {
         }
 
         // --- Compute averages ---
-        long avgOriginal = 0, avgFast = 0;
+        long avgOriginal = 0;
+        long avgFast = 0;
         for (int i = 0; i < numRuns; i++) {
             avgOriginal += originalTimes[i];
             avgFast += fastTimes[i];
@@ -57,9 +58,13 @@ public class ComputeEngineBenchmarkTest {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("checkpoint8output.txt")))) {
             writer.println("Benchmark results for " + numRuns + " runs with " + numTests + " Collatz sequences each:");
             writer.println("Original ComputeEngineAPIImpl times (ms):");
-            for (long t : originalTimes) writer.println(t);
+            for (long t : originalTimes) {
+                writer.println(t);
+            }
             writer.println("Fast ComputeEngineAPIImpl times (ms):");
-            for (long t : fastTimes) writer.println(t);
+            for (long t : fastTimes) {
+                writer.println(t);
+            }
             writer.println("Average Original: " + avgOriginal + " ms");
             writer.println("Average Fast: " + avgFast + " ms");
             writer.println("Performance improvement: " + String.format("%.2f", improvement) + "%");

@@ -6,8 +6,10 @@ import project.api.conceptual.ComputeResult;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
 /**
  * FastComputeEngineAPIImpl
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 public class FastComputeEngineAPIImpl implements ComputeEngineAPI {
 
     private static final int THREAD_LIMIT = 8;
-    
+
     public FastComputeEngineAPIImpl() {
     }
 
@@ -36,7 +38,6 @@ public class FastComputeEngineAPIImpl implements ComputeEngineAPI {
                 return new ComputeResult(false, "Input must be a positive integer");
             }
 
-            // Single sequence computation (fast enough sequentially)
             List<Integer> sequence = new ArrayList<>();
             sequence.add(n);
 
@@ -49,13 +50,13 @@ public class FastComputeEngineAPIImpl implements ComputeEngineAPI {
                 sequence.add(n);
             }
 
-            // Use StringBuilder instead of stream Collectors for slightly faster concatenation
             StringBuilder sb = new StringBuilder();
             for (int num : sequence) {
                 sb.append(num).append(",");
             }
-            // Remove last comma and add newline
-            sb.setLength(sb.length() - 1);
+            if (sb.length() > 0) {
+                sb.setLength(sb.length() - 1); // remove last comma
+            }
             sb.append("\n");
 
             return new ComputeResult(true, sb.toString());
