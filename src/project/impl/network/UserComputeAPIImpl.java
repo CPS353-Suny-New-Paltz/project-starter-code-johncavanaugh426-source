@@ -9,10 +9,16 @@ import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
 import project.impl.conceptual.ComputeEngineAPIImpl;
+import project.api.conceptual.ComputeRequest;
+import project.api.conceptual.ComputeResult;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserComputeAPIImpl implements UserComputeAPI {
+
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
 
@@ -31,23 +37,55 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             if (request == null) {
                 return new UserComputeResult(false, "Request cannot be null");
             }
-            if (request.getInputSource() == null || request.getInputSource().trim().isEmpty()) {
+
+            String inputPath = request.getInputSource();
+            if (inputPath == null || inputPath.trim().isEmpty()) {
                 return new UserComputeResult(false, "Input source must be provided");
             }
 
-            // Use user-defined or default delimiter
+            if (!Files.exists(Paths.get(inputPath))) {
+                return new UserComputeResult(false, "Input file does not exist: " + inputPath);
+            }
+
+            String outputPath = request.getOutputDestination();
+            if (outputPath == null || outputPath.trim().isEmpty()) {
+                return new UserComputeResult(false, "Output destination must be provided");
+            }
+
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Build ProcessRequest (no file reading here — handled by DataStorageComputeAPI)
+            List<Integer> inputData = Files.lines(Paths.get(inputPath))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+
+            if (inputData.isEmpty()) {
+                return new UserComputeResult(false, "No input numbers provided");
+            }
+
+            StringBuilder finalOutput = new StringBuilder();
+            for (int number : inputData) {
+                ComputeRequest computeRequest = () -> number;
+                ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
+
+                if (!computeResult.isSuccess()) {
+                    return new UserComputeResult(false, "Computation failed for number: " + number);
+                }
+
+                finalOutput.append(computeResult.getSequence().replace(",", delimiter))
+                    .append(System.lineSeparator());
+            }
+
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
-                    return null; // handled internally by process layer
+                    return null;
                 }
 
                 @Override
                 public String getOutputDestination() {
-                    return request.getOutputDestination();
+                    return outputPath;
                 }
 
                 @Override
@@ -57,23 +95,21 @@ public class UserComputeAPIImpl implements UserComputeAPI {
 
                 @Override
                 public String getComputedResults() {
-                    return null; // computed inside process layer
+                    return finalOutput.toString();
                 }
 
                 @Override
                 public String getInputSource() {
-                    return request.getInputSource();
+                    return inputPath;
                 }
             };
 
-            // Let the process API handle reading, computing, and writing
             ProcessResult processResult = dataStore.processData(processRequest);
-
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
+            } else {
+                return new UserComputeResult(true, "Computation and storage completed successfully");
             }
-
-            return new UserComputeResult(true, "Computation and storage completed successfully");
 
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());

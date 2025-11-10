@@ -16,7 +16,7 @@ public class UserComputeIntegrationTest {
     @Test
     public void testMissingFileReturnsError() throws Exception {
         Path inputPath = Paths.get("nonexistent_input.txt");
-        Files.deleteIfExists(inputPath);
+        Files.deleteIfExists(inputPath); // ensure file is missing
 
         UserComputeAPIImpl api = new UserComputeAPIImpl();
         UserComputeRequest request = new UserComputeRequest() {
@@ -27,7 +27,7 @@ public class UserComputeIntegrationTest {
 
             @Override
             public String getOutputDestination() {
-                return null;
+                return "dummy_output.txt"; // dummy file to satisfy API
             }
 
             @Override
@@ -40,7 +40,7 @@ public class UserComputeIntegrationTest {
 
         System.out.println("Missing file test message: " + result.getMessage());
 
-        // The API should fail since the file doesn't exist
+        // Should fail because input file doesn't exist
         Assertions.assertFalse(result.isSuccess(), "Should fail for missing input file");
         Assertions.assertTrue(
             result.getMessage().toLowerCase().contains("does not exist") ||
@@ -53,7 +53,7 @@ public class UserComputeIntegrationTest {
     @Test
     public void testEmptyInputFileReturnsError() throws Exception {
         Path inputPath = Paths.get("empty_input.txt");
-        Files.writeString(inputPath, ""); // create an empty file
+        Files.writeString(inputPath, ""); // create empty file
 
         UserComputeAPIImpl api = new UserComputeAPIImpl();
         UserComputeRequest request = new UserComputeRequest() {
@@ -64,7 +64,7 @@ public class UserComputeIntegrationTest {
 
             @Override
             public String getOutputDestination() {
-                return null;
+                return "dummy_output.txt"; // dummy output file
             }
 
             @Override

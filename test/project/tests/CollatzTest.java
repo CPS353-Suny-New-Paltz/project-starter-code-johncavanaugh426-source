@@ -17,7 +17,7 @@ public class CollatzTest {
     public void testCollatzSequences() {
         // Write the test numbers to collatzInput.txt
         try (FileWriter writer = new FileWriter("collatzInput.txt")) {
-            writer.write("5\n6\n7\n10\n");
+            writer.write("1\n6\n7\n10\n");
         } catch (IOException e) {
             e.printStackTrace();
             return;

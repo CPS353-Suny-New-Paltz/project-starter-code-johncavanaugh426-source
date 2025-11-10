@@ -8,14 +8,23 @@ import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
+import project.api.conceptual.ComputeRequest;
+import project.api.conceptual.ComputeResult;
 import project.impl.conceptual.ComputeEngineAPIImpl;
 
-// Multi-threaded version that delegates one computation job to the data store,
-// which internally handles parallel processing across threads.
-public class UserComputeAPIMultiThreaded implements UserComputeAPI {
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
+public class UserComputeAPIMultiThreaded implements UserComputeAPI {
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
+    private static final int THREAD_LIMIT = 5;
 
     public UserComputeAPIMultiThreaded() {
         this(new DataStorageComputeAPIImpl(), new ComputeEngineAPIImpl());
@@ -36,46 +45,68 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
                 return new UserComputeResult(false, "Input source must be provided");
             }
 
+            String inputPath = request.getInputSource();
+            String outputPath = request.getOutputDestination();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Build ProcessRequest that the DataStorage layer expects
-            ProcessRequest processRequest = new ProcessRequest() {
-                @Override
-                public java.util.List<Integer> getInputData() {
-                    return null; // handled by data store
-                }
+            List<Integer> inputData = Files.lines(Paths.get(inputPath))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
 
+            ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
+            List<Future<String>> futures = new ArrayList<>();
+
+            for (int number : inputData) {
+                futures.add(executor.submit(() -> {
+                    ComputeRequest computeRequest = () -> number;
+                    ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
+                    if (!computeResult.isSuccess()) {
+                        throw new RuntimeException("Computation failed for " + number);
+                    }
+                    return computeResult.getSequence().replace(",", delimiter);
+                }));
+            }
+
+            StringBuilder resultBuilder = new StringBuilder();
+            for (Future<String> f : futures) {
+                resultBuilder.append(f.get()).append(System.lineSeparator());
+            }
+
+            executor.shutdown();
+
+            String finalOutput = resultBuilder.toString().trim();
+
+            ProcessRequest writeRequest = new ProcessRequest() {
+                @Override
+                public List<Integer> getInputData() {
+                    return null;
+                }
                 @Override
                 public String getOutputDestination() {
-                    return request.getOutputDestination();
+                    return outputPath;
                 }
-
                 @Override
                 public String getDelimiter() {
                     return delimiter;
                 }
-
                 @Override
                 public String getComputedResults() {
-                    return null;
+                    return finalOutput;
                 }
-
                 @Override
                 public String getInputSource() {
-                    return request.getInputSource();
+                    return inputPath;
                 }
             };
 
-            // Call data store ONCE — it handles multi-threading internally
-            ProcessResult processResult = dataStore.processData(processRequest);
-
-            if (processResult == null || !processResult.isSuccess()) {
-                String msg = processResult == null ? "null ProcessResult" : processResult.getMessage();
-                return new UserComputeResult(false, "Data processing failed: " + msg);
+            ProcessResult writeResult = dataStore.processData(writeRequest);
+            if (!writeResult.isSuccess()) {
+                return new UserComputeResult(false, "Write failed: " + writeResult.getMessage());
             }
 
             return new UserComputeResult(true, "Multi-threaded computation completed successfully");
-
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());
         }

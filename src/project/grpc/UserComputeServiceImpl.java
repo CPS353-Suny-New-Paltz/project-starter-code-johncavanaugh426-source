@@ -3,6 +3,10 @@ package project.grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeServiceImplBase {
@@ -10,7 +14,6 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
     private final ManagedChannel channel;
     private final ProcessComputeServiceGrpc.ProcessComputeServiceBlockingStub stub;
 
-    // Connect to process server on localhost:50052
     public UserComputeServiceImpl(String target) {
         channel = ManagedChannelBuilder.forTarget(target)
                 .usePlaintext()
@@ -19,14 +22,49 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
         System.out.println("UserComputeServiceImpl: Connected to process server at " + target);
     }
 
-    // Handle incoming user compute requests
     @Override
     public void processInput(UserComputeRequestMessage request,
                              StreamObserver<UserComputeResultMessage> responseObserver) {
 
         System.out.println("UserComputeServiceImpl: Received request from client.");
 
-        // Build process request for the data store
+        // Validate input file
+        File inputFile = new File(request.getInputSource());
+        if (!inputFile.exists()) {
+            UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Input file does not exist: " + request.getInputSource())
+                    .build();
+            responseObserver.onNext(error);
+            responseObserver.onCompleted();
+            System.out.println("UserComputeServiceImpl: Input file missing.");
+            return;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(inputFile.toPath());
+            if (lines.isEmpty()) {
+                UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Input file is empty: " + request.getInputSource())
+                        .build();
+                responseObserver.onNext(error);
+                responseObserver.onCompleted();
+                System.out.println("UserComputeServiceImpl: Input file empty.");
+                return;
+            }
+        } catch (IOException e) {
+            UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Failed to read input file: " + e.getMessage())
+                    .build();
+            responseObserver.onNext(error);
+            responseObserver.onCompleted();
+            System.out.println("UserComputeServiceImpl: Failed to read input file.");
+            return;
+        }
+
+        // Forward request to process server
         ProcessDataRequest processRequest = ProcessDataRequest.newBuilder()
                 .setInputSource(request.getInputSource())
                 .setOutputDestination(request.getOutputDestination())
@@ -34,13 +72,8 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                 .build();
 
         System.out.println("UserComputeServiceImpl: Forwarding request to process server...");
-
-        // Call process server
         ProcessDataResult result = stub.processData(processRequest);
 
-        System.out.println("UserComputeServiceImpl: Received response from process server.");
-
-        // Build and send response to user
         UserComputeResultMessage response = UserComputeResultMessage.newBuilder()
                 .setSuccess(result.getSuccess())
                 .setMessage(result.getMessage())
@@ -48,11 +81,9 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
-
         System.out.println("UserComputeServiceImpl: Sent response back to client.");
     }
 
-    // close the channel
     public void shutdown() throws InterruptedException {
         if (channel != null && !channel.isShutdown()) {
             channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);

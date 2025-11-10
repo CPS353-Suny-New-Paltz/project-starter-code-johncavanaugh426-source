@@ -17,10 +17,9 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
     @Override
     public void processData(ProcessDataRequest request,
                             StreamObserver<ProcessDataResult> responseObserver) {
-
         System.out.println("ProcessComputeServiceImpl: Received request from UserComputeServer.");
 
-        // Wrap request into ProcessRequest interface
+        // Wrap request into ProcessRequest
         ProcessRequest processRequest = new ProcessRequest() {
             @Override
             public java.util.List<Integer> getInputData() {
@@ -50,6 +49,7 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
 
         System.out.println("ProcessComputeServiceImpl: Calling DataStorageComputeAPIImpl...");
 
+        // This call now blocks until all threads finish and file is fully written
         ProcessResult result = dataStore.processData(processRequest);
 
         System.out.println("ProcessComputeServiceImpl: Finished processing. Building response...");

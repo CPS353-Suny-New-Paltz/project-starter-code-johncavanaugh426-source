@@ -4,22 +4,18 @@ import project.api.network.UserComputeAPI;
 import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
 
-import java.io.File;
-
 public class TestUser {
 
-    // TODO 3 fixed: use the @NetworkAPI interface
     private final UserComputeAPI coordinator;
 
     public TestUser(UserComputeAPI coordinator) {
         this.coordinator = coordinator;
     }
- 
-    public void run(String outputPath) {
-        String delimiter = ";"; 
-        String inputPath = "test" + File.separator + "testInputFile.test";
 
-        // TODO 4: call coordinator to run compute job
+    // Run method with both output and input paths
+    public void run(String outputPath, String inputPath) {
+        String delimiter = ";";
+
         UserComputeRequest request = new UserComputeRequest() {
             @Override
             public String getInputSource() {
@@ -32,7 +28,7 @@ public class TestUser {
             }
 
             @Override
-            public String getOutputDelimiter() { 
+            public String getOutputDelimiter() {
                 return delimiter;
             }
         };
