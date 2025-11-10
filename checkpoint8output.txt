@@ -1,0 +1,26 @@
+Benchmark results for 10 runs with 100000 Collatz sequences each:
+Original ComputeEngineAPIImpl times (ms):
+682
+538
+479
+424
+508
+506
+562
+602
+511
+490
+Fast ComputeEngineAPIImpl times (ms):
+403
+276
+290
+217
+287
+327
+297
+247
+342
+317
+Average Original: 530 ms
+Average Fast: 300 ms
+Performance improvement: 43.40%
