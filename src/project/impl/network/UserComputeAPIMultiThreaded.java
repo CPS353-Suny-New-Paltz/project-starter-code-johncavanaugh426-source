@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 public class UserComputeAPIMultiThreaded implements UserComputeAPI {
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
-    private static final int THREAD_LIMIT = 5;
+    private static final int THREAD_LIMIT = 8;
 
     public UserComputeAPIMultiThreaded() {
         this(new DataStorageComputeAPIImpl(), new ComputeEngineAPIImpl());
