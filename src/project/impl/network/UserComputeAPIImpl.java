@@ -50,7 +50,6 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 return new UserComputeResult(false, "Input source must be provided");
             }
 
-            // Check if input file exists
             if (!Files.exists(Paths.get(inputPath)))
             {
                 return new UserComputeResult(false, "Input file does not exist: " + inputPath);
@@ -64,7 +63,6 @@ public class UserComputeAPIImpl implements UserComputeAPI
 
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Read input numbers
             List<Integer> inputData = Files.lines(Paths.get(inputPath))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -76,7 +74,6 @@ public class UserComputeAPIImpl implements UserComputeAPI
                 return new UserComputeResult(false, "No input numbers provided");
             }
 
-            // Compute results
             StringBuilder finalOutput = new StringBuilder();
             for (int number : inputData)
             {
@@ -93,7 +90,6 @@ public class UserComputeAPIImpl implements UserComputeAPI
                     .append(System.lineSeparator());
             }
 
-            // Build ProcessRequest for data storage
             ProcessRequest processRequest = new ProcessRequest()
             {
                 @Override
@@ -128,6 +124,7 @@ public class UserComputeAPIImpl implements UserComputeAPI
             };
 
             ProcessResult processResult = dataStore.processData(processRequest);
+
             if (!processResult.isSuccess())
             {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
