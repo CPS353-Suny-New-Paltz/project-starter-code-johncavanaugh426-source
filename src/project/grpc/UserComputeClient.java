@@ -2,10 +2,10 @@ package project.grpc;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
 import java.util.Scanner;
 
 public class UserComputeClient {
@@ -17,14 +17,39 @@ public class UserComputeClient {
         Scanner scanner = new Scanner(System.in);
 
         try {
-            // Prompt for input file
-            System.out.print("Enter the input .txt file: ");
-            File inputFile = new File(scanner.nextLine());
-            if (!inputFile.exists()) {
-                System.err.println("Input file does not exist: " + inputFile.getAbsolutePath());
-                return;
+            // Choose input mode
+            System.out.print("Use file input or memory input? (file/memory): ");
+            String mode = scanner.nextLine().trim().toLowerCase();
+
+            String inputSource;
+
+            if (mode.equals("memory")) {
+                System.out.print("Enter numbers separated by spaces or commas: ");
+                String numbers = scanner.nextLine();
+
+                try {
+                    // Convert to temporary file
+                    File tempFile = File.createTempFile("temp_input", ".txt");
+                    tempFile.deleteOnExit(); // auto-delete on JVM exit
+
+                    String content = numbers.replaceAll("[,\\s]+", "\n");
+                    Files.write(tempFile.toPath(), content.getBytes());
+
+                    inputSource = tempFile.getAbsolutePath();
+                } catch (Exception e) {
+                    System.err.println("Failed to create temporary file: " + e.getMessage());
+                    return;
+                }
+            } else {
+                // File input
+                System.out.print("Enter the input .txt file: ");
+                File inputFile = new File(scanner.nextLine());
+                if (!inputFile.exists()) {
+                    System.err.println("Input file does not exist: " + inputFile.getAbsolutePath());
+                    return;
+                }
+                inputSource = inputFile.getAbsolutePath();
             }
-            String inputSource = inputFile.getAbsolutePath();
 
             // Prompt for output file
             System.out.print("Enter the output .txt file: ");
@@ -47,7 +72,7 @@ public class UserComputeClient {
             UserComputeServiceGrpc.UserComputeServiceBlockingStub stub =
                     UserComputeServiceGrpc.newBlockingStub(channel);
 
-            // Build the gRPC request
+            // Build gRPC request
             UserComputeRequestMessage request = UserComputeRequestMessage.newBuilder()
                     .setInputSource(inputSource)
                     .setOutputDestination(outputDestination)
