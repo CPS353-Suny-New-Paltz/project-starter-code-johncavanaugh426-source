@@ -23,7 +23,9 @@ public class DataStorageValidationTest {
 
         ProcessRequest emptyRequest = new ProcessRequest() {
             @Override
-            public List<Integer> getInputData() { return null; }
+            public List<Integer> getInputData() { 
+            	return null; 
+            	}
 
             @Override
             public String getOutputDestination() {
