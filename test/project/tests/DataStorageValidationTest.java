@@ -23,9 +23,7 @@ public class DataStorageValidationTest {
 
         ProcessRequest emptyRequest = new ProcessRequest() {
             @Override
-            public List<Integer> getInputData() {
-                return null; // no longer used
-            }
+            public List<Integer> getInputData() { return null; }
 
             @Override
             public String getOutputDestination() {
@@ -33,12 +31,11 @@ public class DataStorageValidationTest {
             }
 
             @Override
-            public String getDelimiter() {
-                return ",";
-            }
+            public String getDelimiter() { return ","; }
 
             @Override
             public String getComputedResults() {
+                // Provide at least a placeholder to satisfy new API
                 return "";
             }
 
@@ -52,8 +49,9 @@ public class DataStorageValidationTest {
 
         System.out.println("Empty file test message: " + result.getMessage());
 
+        // Should still fail because file is empty
         Assertions.assertFalse(result.isSuccess());
-        Assertions.assertTrue(result.getMessage().contains("No input numbers provided"));
+        Assertions.assertTrue(result.getMessage().contains("Input file is empty"));
     }
 
     @Test
@@ -67,29 +65,22 @@ public class DataStorageValidationTest {
 
         ProcessRequest validRequest = new ProcessRequest() {
             @Override
-            public List<Integer> getInputData() {
-                return null; // handled by file reading now
-            }
+            public List<Integer> getInputData() { return null; }
 
             @Override
-            public String getOutputDestination() {
-                return outputFile.toString();
-            }
+            public String getOutputDestination() { return outputFile.toString(); }
 
             @Override
-            public String getDelimiter() {
-                return ",";
-            }
+            public String getDelimiter() { return ","; }
 
             @Override
             public String getComputedResults() {
-                return null;
+                // Provide some fake computed results so the storage layer can write it
+                return "5,16,8,4,2,1\n10,5,16,8,4,2,1\n15,46,23,70,35,106,53,160,80,40,20,10,5,16,8,4,2,1";
             }
 
             @Override
-            public String getInputSource() {
-                return inputFile.toString();
-            }
+            public String getInputSource() { return inputFile.toString(); }
         };
 
         ProcessResult result = storageApi.processData(validRequest);
