@@ -31,7 +31,9 @@ public class DataStorageValidationTest {
             }
 
             @Override
-            public String getDelimiter() { return ","; }
+            public String getDelimiter() { 
+            	return ","; 
+            	}
 
             @Override
             public String getComputedResults() {
@@ -65,13 +67,19 @@ public class DataStorageValidationTest {
 
         ProcessRequest validRequest = new ProcessRequest() {
             @Override
-            public List<Integer> getInputData() { return null; }
+            public List<Integer> getInputData() { 
+            	return null; 
+            	}
 
             @Override
-            public String getOutputDestination() { return outputFile.toString(); }
+            public String getOutputDestination() { 
+            	return outputFile.toString(); 
+            	}
 
             @Override
-            public String getDelimiter() { return ","; }
+            public String getDelimiter() { 
+            	return ","; 
+            	}
 
             @Override
             public String getComputedResults() {
@@ -80,7 +88,9 @@ public class DataStorageValidationTest {
             }
 
             @Override
-            public String getInputSource() { return inputFile.toString(); }
+            public String getInputSource() { 
+            	return inputFile.toString(); 
+            	}
         };
 
         ProcessResult result = storageApi.processData(validRequest);

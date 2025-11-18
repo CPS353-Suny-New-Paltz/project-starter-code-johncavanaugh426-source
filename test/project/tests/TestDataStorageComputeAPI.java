@@ -26,13 +26,19 @@ public class TestDataStorageComputeAPI {
 
         ProcessRequest request = new ProcessRequest() {
             @Override
-            public java.util.List<Integer> getInputData() { return null; }
+            public java.util.List<Integer> getInputData() { 
+            	return null; 
+            	}
 
             @Override
-            public String getOutputDestination() { return outputFile.toString(); }
+            public String getOutputDestination() { 
+            	return outputFile.toString(); 
+            	}
 
             @Override
-            public String getDelimiter() { return ","; }
+            public String getDelimiter() { 
+            	return ","; 
+            	}
 
             @Override
             public String getComputedResults() {
@@ -41,7 +47,9 @@ public class TestDataStorageComputeAPI {
             }
 
             @Override
-            public String getInputSource() { return inputFile.toString(); }
+            public String getInputSource() { 
+            	return inputFile.toString(); 
+            	}
         };
 
         ProcessResult result = realDataStore.processData(request);
