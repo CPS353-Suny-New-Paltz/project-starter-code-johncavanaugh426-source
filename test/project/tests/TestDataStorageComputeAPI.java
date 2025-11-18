@@ -26,29 +26,30 @@ public class TestDataStorageComputeAPI {
 
         ProcessRequest request = new ProcessRequest() {
             @Override
-            public java.util.List<Integer> getInputData() {
-                return null; // handled via file now
-            }
+            public java.util.List<Integer> getInputData() { 
+            	return null; 
+            	}
 
             @Override
-            public String getOutputDestination() {
-                return outputFile.toString();
-            }
+            public String getOutputDestination() { 
+            	return outputFile.toString(); 
+            	}
 
             @Override
-            public String getDelimiter() {
-                return ",";
-            }
+            public String getDelimiter() { 
+            	return ","; 
+            	}
 
             @Override
             public String getComputedResults() {
-                return null;
+                // Provide dummy Collatz sequences for 1, 2, 3
+                return "1\n2,1\n3,10,5,16,8,4,2,1";
             }
 
             @Override
-            public String getInputSource() {
-                return inputFile.toString();
-            }
+            public String getInputSource() { 
+            	return inputFile.toString(); 
+            	}
         };
 
         ProcessResult result = realDataStore.processData(request);

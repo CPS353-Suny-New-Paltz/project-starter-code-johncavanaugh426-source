@@ -3,24 +3,13 @@ package project.impl.process;
 import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
-import project.api.conceptual.ComputeEngineAPI;
-import project.api.conceptual.ComputeRequest;
-import project.api.conceptual.ComputeResult;
-import project.impl.conceptual.ComputeEngineAPIImpl;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
-
-    private static final int THREAD_LIMIT = 5;
-    private final ComputeEngineAPI computeEngine = new ComputeEngineAPIImpl();
 
     @Override
     public ProcessResult processData(ProcessRequest request) {
@@ -38,14 +27,13 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
                 return new ProcessResult(false, "Input file does not exist: " + inputPath);
             }
 
-            List<Integer> inputData = Files.lines(Paths.get(inputPath))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+            List<String> inputLines = Files.lines(Paths.get(inputPath))
+                                           .map(String::trim)
+                                           .filter(s -> !s.isEmpty())
+                                           .collect(Collectors.toList());
 
-            if (inputData.isEmpty()) {
-                return new ProcessResult(false, "No input numbers provided");
+            if (inputLines.isEmpty()) {
+                return new ProcessResult(false, "Input file is empty");
             }
 
             String outputPath = request.getOutputDestination();
@@ -53,34 +41,17 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
                 return new ProcessResult(false, "Output destination cannot be null or empty");
             }
 
-            String delimiter = request.getDelimiter() != null ? request.getDelimiter() : ",";
-
-            ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
-            List<Future<String>> results = new ArrayList<>();
-
-            for (int number : inputData) {
-                results.add(executor.submit(() -> {
-                    ComputeRequest computeRequest = () -> number;
-                    ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-
-                    if (!computeResult.isSuccess()) {
-                        throw new RuntimeException("Computation failed for " + number);
-                    }
-
-                    return computeResult.getSequence().replace(",", delimiter);
-                }));
+            String computedResults = request.getComputedResults();
+            if (computedResults == null || computedResults.isEmpty()) {
+                return new ProcessResult(false, "No computed results provided");
             }
 
-            List<String> outputLines = new ArrayList<>();
-            for (Future<String> f : results) {
-                outputLines.add(f.get());
-            }
-
-            executor.shutdown();
-
+            // Write the computed results to file
+            List<String> outputLines = List.of(computedResults.split("\\R"));
             Files.write(Paths.get(outputPath), outputLines);
 
             return new ProcessResult(true, "Data processed successfully");
+
         } catch (Exception e) {
             return new ProcessResult(false, "Data storage error: " + e.getMessage());
         }
