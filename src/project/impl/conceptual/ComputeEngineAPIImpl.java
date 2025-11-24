@@ -4,6 +4,7 @@ import project.api.conceptual.ComputeEngineAPI;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,34 +17,44 @@ public class ComputeEngineAPIImpl implements ComputeEngineAPI {
     @Override
     public ComputeResult computeCollatz(ComputeRequest request) {
         try {
-            // Validation checks
             if (request == null) {
                 return new ComputeResult(false, "Request cannot be null");
             }
 
-            int n = request.getInputNumber();
-            if (n <= 0) {
+            BigInteger n;
+
+            if (request.getInputString() != null) {
+                // Big number path:
+                // If the user provides a string, we assume it may be large.
+                n = new BigInteger(request.getInputString());
+            } else {
+                // Use the original int-based method.
+                int small = request.getInputNumber();
+                if (small <= 0) {
+                    return new ComputeResult(false, "Input must be a positive integer");
+                }
+                n = BigInteger.valueOf(small);
+            }
+
+            if (n.compareTo(BigInteger.ZERO) <= 0) {
                 return new ComputeResult(false, "Input must be a positive integer");
             }
 
-            List<Integer> sequence = new ArrayList<>();
+            List<BigInteger> sequence = new ArrayList<>();
             sequence.add(n);
 
-            while (n != 1) {
-                if (n % 2 == 0) {
-                    n = n / 2;
+            while (!n.equals(BigInteger.ONE)) {
+                if (n.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+                    n = n.divide(BigInteger.TWO);
                 } else {
-                    n = 3 * n + 1;
+                    n = n.multiply(BigInteger.valueOf(3)).add(BigInteger.ONE);
                 }
                 sequence.add(n);
             }
 
-            // Join the numbers into a comma-separated string
             String resultString = sequence.stream()
-                                          .map(String::valueOf)
-                                          .collect(Collectors.joining(","));
-
-            resultString += "\n";
+                    .map(BigInteger::toString)
+                    .collect(Collectors.joining(",")) + "\n";
 
             return new ComputeResult(true, resultString);
 

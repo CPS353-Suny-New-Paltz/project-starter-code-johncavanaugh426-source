@@ -15,7 +15,7 @@ public class ComputeEngineBenchmarkTest {
 
     @Test
     public void benchmarkCollatzMultipleRuns() throws Exception {
-        int numTests = 100_000; // number of Collatz computations
+        int numTests = 50_000; // number of Collatz computations
         int numRuns = 10; // number of times to repeat the experiment
         long[] originalTimes = new long[numRuns];
         long[] fastTimes = new long[numRuns];

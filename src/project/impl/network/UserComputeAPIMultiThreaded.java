@@ -49,22 +49,51 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
             String outputPath = request.getOutputDestination();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            List<Integer> inputData = Files.lines(Paths.get(inputPath))
+            // Read input as raw strings
+            List<String> inputLines = Files.lines(Paths.get(inputPath))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
-                    .map(Integer::parseInt)
                     .collect(Collectors.toList());
 
             ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
             List<Future<String>> futures = new ArrayList<>();
 
-            for (int number : inputData) {
+            for (String line : inputLines) {
                 futures.add(executor.submit(() -> {
-                    ComputeRequest computeRequest = () -> number;
+                    ComputeRequest computeRequest;
+
+                    try {
+                        // Try to parse as small integer
+                        int small = Integer.parseInt(line);
+                        computeRequest = new ComputeRequest() {
+                            @Override
+                            public int getInputNumber() {
+                                return small;
+                            }
+                            @Override
+                            public String getInputString() {
+                                return null;
+                            }
+                        };
+                    } catch (NumberFormatException ex) {
+                        // Big number fallback
+                        computeRequest = new ComputeRequest() {
+                            @Override
+                            public int getInputNumber() {
+                                return -1; // ignored
+                            }
+                            @Override
+                            public String getInputString() {
+                                return line;
+                            }
+                        };
+                    }
+
                     ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
                     if (!computeResult.isSuccess()) {
-                        throw new RuntimeException("Computation failed for " + number);
+                        throw new RuntimeException("Computation failed for input: " + line);
                     }
+
                     return computeResult.getSequence().replace(",", delimiter);
                 }));
             }

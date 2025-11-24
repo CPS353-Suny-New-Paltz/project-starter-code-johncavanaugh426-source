@@ -54,33 +54,69 @@ public class UserComputeAPIImpl implements UserComputeAPI {
 
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            List<Integer> inputData = Files.lines(Paths.get(inputPath))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+            // Read raw string lines (important!)
+            List<String> inputLines = Files.lines(Paths.get(inputPath))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
 
-            if (inputData.isEmpty()) {
+            if (inputLines.isEmpty()) {
                 return new UserComputeResult(false, "No input numbers provided");
             }
 
             StringBuilder finalOutput = new StringBuilder();
-            for (int number : inputData) {
-                ComputeRequest computeRequest = () -> number;
+
+            for (String line : inputLines) {
+
+                ComputeRequest computeRequest;
+
+                try {
+                    // Try to parse as normal integer first (preserves old behavior)
+                    int small = Integer.parseInt(line);
+
+                    computeRequest = new ComputeRequest() {
+                        @Override
+                        public int getInputNumber() {
+                            return small;
+                        }
+
+                        @Override
+                        public String getInputString() {
+                            return null;
+                        }
+                    };
+
+                } catch (NumberFormatException ex) {
+                    // Overflow or invalid int -> treat as a BigInteger string
+                    computeRequest = new ComputeRequest() {
+                        @Override
+                        public int getInputNumber() {
+                            return -1; // ignored by compute engine
+                        }
+
+                        @Override
+                        public String getInputString() {
+                            return line;
+                        }
+                    };
+                }
+
                 ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
 
                 if (!computeResult.isSuccess()) {
-                    return new UserComputeResult(false, "Computation failed for number: " + number);
+                    return new UserComputeResult(false, "Computation failed for input: " + line);
                 }
 
-                finalOutput.append(computeResult.getSequence().replace(",", delimiter))
-                    .append(System.lineSeparator());
+                finalOutput.append(
+                        computeResult.getSequence().replace(",", delimiter)
+                ).append(System.lineSeparator());
             }
 
+            // Store results
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
-                    return null;
+                    return null; // not used
                 }
 
                 @Override
