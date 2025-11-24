@@ -1,7 +1,8 @@
 package project.tests;
 
 import org.junit.jupiter.api.Test;
-import visualizer.CollatzVisualizerFromFile;
+
+import project.visualizer.CollatzVisualizerFromFile;
 
 import java.io.File;
 
