@@ -1,7 +1,6 @@
 package project.visualizer;
 
 import java.io.BufferedReader;
-
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +22,9 @@ public class CollatzVisualizerFromFile {
             int seqNum = 1;
 
             while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
 
                 // Split on any non-digit character (and allow minus for negatives)
                 String[] parts = line.split("[^\\d-]+");
@@ -43,15 +44,22 @@ public class CollatzVisualizerFromFile {
 
                 for (int i = 0; i < parts.length; i++) {
                     numbers[i] = new BigInteger(parts[i].trim());
-                    if (numbers[i].compareTo(max) > 0) max = numbers[i];
+                    if (numbers[i].compareTo(max) > 0) {
+                        max = numbers[i];
+                    }
                 }
 
                 for (BigInteger n : numbers) {
                     int stars = n.multiply(BigInteger.valueOf(50)).divide(max).intValue();
-                    if (stars < 1) stars = 1; // at least 1 star
-                    for (int i = 0; i < stars; i++) writer.print("*");
+                    if (stars < 1) {
+                        stars = 1; // at least 1 star
+                    }
+                    for (int i = 0; i < stars; i++) {
+                        writer.print("*");
+                    }
                     writer.println(" (" + n + ")");
                 }
+
                 writer.println();
                 seqNum++;
             }
