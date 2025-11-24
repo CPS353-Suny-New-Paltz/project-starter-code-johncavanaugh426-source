@@ -9,8 +9,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeServiceImplBase {
 
@@ -23,14 +21,13 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                 .usePlaintext()
                 .build();
         stub = ProcessComputeServiceGrpc.newBlockingStub(channel);
-        executor = Executors.newFixedThreadPool(8); // THREAD_LIMIT = 8
+        executor = Executors.newFixedThreadPool(8);
         System.out.println("UserComputeServiceImpl: Connected to process server at " + target);
     }
 
     @Override
     public void processInput(UserComputeRequestMessage request,
-                             StreamObserver<UserComputeResultMessage> responseObserver) 
-    {
+                             StreamObserver<UserComputeResultMessage> responseObserver) {
         executor.submit(() -> {
             System.out.println("UserComputeServiceImpl: Received request from client.");
 
@@ -48,10 +45,11 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
 
             try {
                 List<String> lines = Files.readAllLines(inputFile.toPath())
-                                          .stream()
-                                          .map(String::trim)
-                                          .filter(s -> !s.isEmpty())
-                                          .collect(Collectors.toList());
+                        .stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList();
+
                 if (lines.isEmpty()) {
                     UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
                             .setSuccess(false)
@@ -62,8 +60,7 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                     System.out.println("UserComputeServiceImpl: Input file empty.");
                     return;
                 }
-            } 
-            catch (IOException e) {
+            } catch (IOException e) {
                 UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
                         .setSuccess(false)
                         .setMessage("Failed to read input file: " + e.getMessage())
@@ -74,7 +71,6 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                 return;
             }
 
-            // Forward request to process server
             ProcessDataRequest processRequest = ProcessDataRequest.newBuilder()
                     .setInputSource(request.getInputSource())
                     .setOutputDestination(request.getOutputDestination())
@@ -95,8 +91,7 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
         });
     }
 
-    public void shutdown() throws InterruptedException
-    {
+    public void shutdown() throws InterruptedException {
         if (channel != null && !channel.isShutdown()) {
             channel.shutdown().awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
         }
