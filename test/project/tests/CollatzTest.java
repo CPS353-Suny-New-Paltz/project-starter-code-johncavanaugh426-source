@@ -6,7 +6,7 @@ import project.api.network.UserComputeRequest;
 import project.api.network.UserComputeResult;
 import project.impl.network.UserComputeAPIImpl;
 import project.impl.process.DataStorageComputeAPIImpl;
-import project.impl.conceptual.ComputeEngineAPIImpl;
+import project.impl.conceptual.FastComputeEngineAPIImpl;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,7 +18,7 @@ public class CollatzTest {
         // Write both small and MASSIVE test numbers
         try (FileWriter writer = new FileWriter("collatzInput.txt")) {
             writer.write("1\n");
-            writer.write("6\n");
+            writer.write("5\n");
             writer.write("7\n");
             writer.write("100000000\n");  // regular int
             writer.write("99999999999999999999999999999999\n"); // BIG INT
@@ -27,9 +27,10 @@ public class CollatzTest {
             return;
         }
 
+        // Use the FastComputeEngineAPIImpl here
         UserComputeAPI userAPI = new UserComputeAPIImpl(
                 new DataStorageComputeAPIImpl(),
-                new ComputeEngineAPIImpl()
+                new FastComputeEngineAPIImpl()   // <- fast engine
         );
 
         // Create the request
