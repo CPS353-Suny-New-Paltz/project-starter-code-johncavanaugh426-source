@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeServiceImplBase {
 
@@ -21,7 +22,7 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                 .usePlaintext()
                 .build();
         stub = ProcessComputeServiceGrpc.newBlockingStub(channel);
-        executor = Executors.newFixedThreadPool(8);
+        executor = Executors.newFixedThreadPool(8); // THREAD_LIMIT = 8
         System.out.println("UserComputeServiceImpl: Connected to process server at " + target);
     }
 
@@ -48,8 +49,7 @@ public class UserComputeServiceImpl extends UserComputeServiceGrpc.UserComputeSe
                         .stream()
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
-                        .toList();
-
+                        .collect(Collectors.toList());
                 if (lines.isEmpty()) {
                     UserComputeResultMessage error = UserComputeResultMessage.newBuilder()
                             .setSuccess(false)
