@@ -4,15 +4,17 @@ import io.grpc.stub.StreamObserver;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
+import project.impl.conceptual.FastComputeEngineAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
-import project.impl.conceptual.ComputeEngineAPIImpl;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.ProcessComputeServiceImplBase {
 
@@ -21,8 +23,8 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
 
     public ProcessComputeServiceImpl() {
         this.dataStore = new DataStorageComputeAPIImpl();
-        this.computeEngine = new ComputeEngineAPIImpl();
-        System.out.println("ProcessComputeServiceImpl: Initialized Compute Engine and Data Store.");
+        this.computeEngine = new FastComputeEngineAPIImpl();
+        System.out.println("ProcessComputeServiceImpl: Initialized Fast Compute Engine and Data Store.");
     }
 
     @Override
@@ -47,22 +49,36 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
 
             String delimiter = request.getOutputDelimiter().isEmpty() ? "," : request.getOutputDelimiter();
 
-            // Compute sequences using ComputeEngineAPIImpl
+            // Map each line to its index to preserve order
+            Map<Integer, ComputeRequest> indexedRequests = IntStream.range(0, inputLines.size())
+                    .boxed()
+                    .collect(Collectors.toMap(i -> i, i -> new ComputeRequest() {
+                        @Override
+                        public int getInputNumber() {
+                            return 0; // unused
+                        }
+
+                        @Override
+                        public String getInputString() {
+                            return inputLines.get(i);
+                        }
+                    }));
+
+            // Compute sequences
+            List<ComputeResult> results = ((FastComputeEngineAPIImpl) computeEngine)
+                    .computeCollatzBatch(indexedRequests.values().stream().collect(Collectors.toList()));
+
+            // Build output in original order
             StringBuilder computedResults = new StringBuilder();
-            for (String line : inputLines) {
-                int number = Integer.parseInt(line);
-                ComputeRequest computeRequest = () -> number;
-                ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-
-                if (!computeResult.isSuccess()) {
-                    throw new RuntimeException("Computation failed for number: " + number);
+            for (int i = 0; i < inputLines.size(); i++) {
+                ComputeResult cr = results.get(i);
+                if (!cr.isSuccess()) {
+                    throw new RuntimeException("Computation failed: " + cr.getSequence());
                 }
-
-                computedResults.append(computeResult.getSequence().replace(",", delimiter))
-                               .append("\n");
+                computedResults.append(cr.getSequence().replace(",", delimiter)).append("\n");
             }
 
-            // Send computed results to Data Storage
+            // Send results to Data Storage
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
