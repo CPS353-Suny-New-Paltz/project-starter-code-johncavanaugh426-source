@@ -15,9 +15,13 @@ public class CollatzTest {
 
     @Test
     public void testCollatzSequences() {
-        // Write the test numbers to collatzInput.txt
+        // Write both small and MASSIVE test numbers
         try (FileWriter writer = new FileWriter("collatzInput.txt")) {
-            writer.write("1\n6\n7\n10\n");
+            writer.write("1\n");
+            writer.write("6\n");
+            writer.write("7\n");
+            writer.write("100000000\n");  // regular int
+            writer.write("99999999999999999999999999999999\n"); // BIG INT
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -28,27 +32,26 @@ public class CollatzTest {
                 new ComputeEngineAPIImpl()
         );
 
-        // Create a request that tells the implementation where to read from
+        // Create the request
         UserComputeRequest request = new UserComputeRequest() {
             @Override
             public String getInputSource() {
-                return "collatzInput.txt"; // file with numbers
+                return "collatzInput.txt";  // file containing numbers
             }
 
             @Override
             public String getOutputDelimiter() {
-                return "$"; 
+                return "$";
             }
 
             @Override
             public String getOutputDestination() {
-                return "collatzOutput.txt"; 
+                return "collatzOutput.txt";
             }
         };
 
         UserComputeResult result = userAPI.processInput(request);
 
-        // Print the result
         System.out.println("Collatz Sequences:\n" + result.getMessage());
     }
 }
