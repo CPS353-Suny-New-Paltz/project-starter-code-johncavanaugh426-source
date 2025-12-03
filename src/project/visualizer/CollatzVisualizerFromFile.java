@@ -13,7 +13,7 @@ public class CollatzVisualizerFromFile {
         String inputFile = args.length > 0 ? args[0] : "outputTest.txt";
         String outputFile = "collatzCharts.txt";
 
-        BigInteger threshold = new BigInteger("1000000"); // first number > threshold => skip sequence
+        BigInteger threshold = new BigInteger("1000000");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
              PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
@@ -26,7 +26,6 @@ public class CollatzVisualizerFromFile {
                     continue;
                 }
 
-                // Split on any non-digit character (and allow minus for negatives)
                 String[] parts = line.split("[^\\d-]+");
 
                 BigInteger firstNum = new BigInteger(parts[0].trim());
@@ -49,10 +48,17 @@ public class CollatzVisualizerFromFile {
                     }
                 }
 
+                // ------- Extra Info Section -------
+                writer.println("Length: " + numbers.length);
+                writer.println("Max Value: " + max);
+                writer.println("Steps: " + (numbers.length - 1));
+                writer.println();
+                // ----------------------------------
+
                 for (BigInteger n : numbers) {
                     int stars = n.multiply(BigInteger.valueOf(50)).divide(max).intValue();
                     if (stars < 1) {
-                        stars = 1; // at least 1 star
+                        stars = 1;
                     }
                     for (int i = 0; i < stars; i++) {
                         writer.print("*");
