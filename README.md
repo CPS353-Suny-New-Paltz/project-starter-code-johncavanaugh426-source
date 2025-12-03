@@ -8,19 +8,19 @@ Once n = 1, the sequence is over
 
 The output is a string of all the numbers seen during the computation
 
-Example input and output:
-Input: 6
-Output: 6,3,10,5,16,8,4,2,1
+Example input and output:  
+Input: 6  
+Output: 6,3,10,5,16,8,4,2,1  
 
 The current thread limit is 8
 
-Checkpoint 8 Benchmark Info"
-The benchmark tests run large batches of Collatz computations across several versions of the compute engine:
+Checkpoint 8 Benchmark Info:  
+The benchmark tests run large batches of Collatz computations across several versions of the compute engine:  
 
-Original ComputeEngineAPIImpl
-Fast FastComputeEngineAPIImpl
-Optimized ComputeEngineOptimizedAPIImpl
-Ultra Fast ComputeEngineAPIUltraFastImpl
+Original ComputeEngineAPIImpl  
+Fast FastComputeEngineAPIImpl  
+Optimized ComputeEngineOptimizedAPIImpl  
+Ultra Fast ComputeEngineAPIUltraFastImpl  
 
 Each benchmark run evaluates thousands of Collatz sequences and logs the timing results.
 
