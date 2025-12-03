@@ -1,0 +1,51 @@
+Benchmark results for 10 runs with 10000 Collatz sequences each:
+Original times (ms):
+362
+257
+243
+210
+172
+177
+190
+280
+187
+232
+Fast times (ms):
+70
+68
+17
+33
+29
+31
+33
+24
+28
+31
+Optimized times (ms):
+231
+137
+159
+149
+208
+149
+164
+155
+173
+220
+Ultra-Fast times (ms):
+46
+63
+35
+29
+15
+22
+21
+21
+21
+25
+Average Original: 231 ms
+Average Fast: 36 ms
+Average Optimized: 174 ms
+Average Ultra-Fast: 29 ms
+Optimized Improvement vs Original: 24.68%
+Ultra-Fast Improvement vs Original: 87.45%
