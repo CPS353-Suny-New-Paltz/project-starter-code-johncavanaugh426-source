@@ -1,6 +1,6 @@
 # John_Cavanaugh_Software_Engineering
 
-The computation I chose is the Collatz Sequence: 
+The computation I chose is the Collatz Sequence:   
 This sequence takes in a positive integer n and follows these rules:  
 If n is even, divide n by 2  
 If n is odd, multiply n by 3 and add 1  
