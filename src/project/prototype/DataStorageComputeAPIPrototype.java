@@ -4,6 +4,7 @@ import project.annotations.ProcessAPIPrototype;
 import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,10 +34,9 @@ public class DataStorageComputeAPIPrototype {
                 return "Input: 6 -> Collatz Sequence: 6,3,10,5,16,8,4,2,1";
             }
 
-            
             @Override
             public String getInputSource() {
-                return null; // not used in this prototype
+                return "mock_input.txt"; // used to demonstrate file reading
             }
         };
 
@@ -44,6 +44,14 @@ public class DataStorageComputeAPIPrototype {
         System.out.println("Writing output to: " + mockRequest.getOutputDestination());
         System.out.println("Using delimiter: " + mockRequest.getDelimiter());
         System.out.println("Mock computed results: " + mockRequest.getComputedResults());
+
+        // Demonstrate the new readInputFile method
+        try {
+            List<String> lines = api.readInputFile(mockRequest.getInputSource());
+            System.out.println("Read input lines: " + lines);
+        } catch (Exception e) {
+            System.out.println("Read input failed (expected for mock): " + e.getMessage());
+        }
 
         // Call the real API with mock data
         ProcessResult result = api.processData(mockRequest);

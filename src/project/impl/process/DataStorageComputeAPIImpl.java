@@ -23,18 +23,8 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
                 return new ProcessResult(false, "Input source cannot be null or empty");
             }
 
-            if (!Files.exists(Paths.get(inputPath))) {
-                return new ProcessResult(false, "Input file does not exist: " + inputPath);
-            }
-
-            List<String> inputLines = Files.lines(Paths.get(inputPath))
-                                           .map(String::trim)
-                                           .filter(s -> !s.isEmpty())
-                                           .collect(Collectors.toList());
-
-            if (inputLines.isEmpty()) {
-                return new ProcessResult(false, "Input file is empty");
-            }
+            // Use the new readInputFile method to read input
+            List<String> inputLines = readInputFile(inputPath);
 
             String outputPath = request.getOutputDestination();
             if (outputPath == null || outputPath.trim().isEmpty()) {
@@ -51,9 +41,29 @@ public class DataStorageComputeAPIImpl implements DataStorageComputeAPI {
             Files.write(Paths.get(outputPath), outputLines);
 
             return new ProcessResult(true, "Data processed successfully");
-
         } catch (Exception e) {
             return new ProcessResult(false, "Data storage error: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<String> readInputFile(String inputPath) throws Exception {
+        if (inputPath == null || inputPath.trim().isEmpty()) {
+            throw new IllegalArgumentException("Input path cannot be null or empty");
+        }
+        if (!Files.exists(Paths.get(inputPath))) {
+            throw new IllegalArgumentException("Input file does not exist: " + inputPath);
+        }
+
+        List<String> inputLines = Files.lines(Paths.get(inputPath))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        if (inputLines.isEmpty()) {
+            throw new IllegalArgumentException("Input file is empty");
+        }
+
+        return inputLines;
     }
 }

@@ -12,10 +12,7 @@ import project.impl.conceptual.ComputeEngineAPIImpl;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserComputeAPIImpl implements UserComputeAPI {
 
@@ -39,84 +36,49 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             }
 
             String inputPath = request.getInputSource();
-            if (inputPath == null || inputPath.trim().isEmpty()) {
-                return new UserComputeResult(false, "Input source must be provided");
-            }
-
-            if (!Files.exists(Paths.get(inputPath))) {
-                return new UserComputeResult(false, "Input file does not exist: " + inputPath);
-            }
-
             String outputPath = request.getOutputDestination();
-            if (outputPath == null || outputPath.trim().isEmpty()) {
-                return new UserComputeResult(false, "Output destination must be provided");
-            }
-
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Read raw string lines (important!)
-            List<String> inputLines = Files.lines(Paths.get(inputPath))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-
-            if (inputLines.isEmpty()) {
-                return new UserComputeResult(false, "No input numbers provided");
-            }
+            // --- FILE READING MOVED TO DATA STORAGE API ---
+            List<String> inputLines = dataStore.readInputFile(inputPath);
 
             StringBuilder finalOutput = new StringBuilder();
 
             for (String line : inputLines) {
-
-                ComputeRequest computeRequest;
-
-                try {
-                    // Try to parse as normal integer first (preserves old behavior)
-                    int small = Integer.parseInt(line);
-
-                    computeRequest = new ComputeRequest() {
-                        @Override
-                        public int getInputNumber() {
-                            return small;
+                ComputeRequest computeRequest = new ComputeRequest() {
+                    @Override
+                    public int getInputNumber() {
+                        try {
+                            return Integer.parseInt(line);
+                        } catch (NumberFormatException e) {
+                            return -1;
                         }
+                    }
 
-                        @Override
-                        public String getInputString() {
+                    @Override
+                    public String getInputString() {
+                        try {
+                            Integer.parseInt(line);
                             return null;
-                        }
-                    };
-
-                } catch (NumberFormatException ex) {
-                    // Overflow or invalid int -> treat as a BigInteger string
-                    computeRequest = new ComputeRequest() {
-                        @Override
-                        public int getInputNumber() {
-                            return -1; // ignored by compute engine
-                        }
-
-                        @Override
-                        public String getInputString() {
+                        } catch (NumberFormatException e) {
                             return line;
                         }
-                    };
-                }
+                    }
+                };
 
-                ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-
-                if (!computeResult.isSuccess()) {
+                ComputeResult result = computeEngine.computeCollatz(computeRequest);
+                if (!result.isSuccess()) {
                     return new UserComputeResult(false, "Computation failed for input: " + line);
                 }
 
-                finalOutput.append(
-                        computeResult.getSequence().replace(",", delimiter)
-                ).append(System.lineSeparator());
+                finalOutput.append(result.getSequence().replace(",", delimiter)).append(System.lineSeparator());
             }
 
-            // Store results
+            // Write results via DataStorageComputeAPI
             ProcessRequest processRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
-                    return null; // not used
+                    return null;
                 }
 
                 @Override
@@ -143,9 +105,9 @@ public class UserComputeAPIImpl implements UserComputeAPI {
             ProcessResult processResult = dataStore.processData(processRequest);
             if (!processResult.isSuccess()) {
                 return new UserComputeResult(false, "Data storage failed: " + processResult.getMessage());
-            } else {
-                return new UserComputeResult(true, "Computation and storage completed successfully");
             }
+
+            return new UserComputeResult(true, "Computation and storage completed successfully");
 
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());
