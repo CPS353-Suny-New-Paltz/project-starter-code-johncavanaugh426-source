@@ -1,16 +1,15 @@
 package project.grpc;
 
 import io.grpc.stub.StreamObserver;
+import project.api.process.DataStorageComputeAPI;
 import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
-import project.impl.conceptual.FastComputeEngineAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
+import project.impl.conceptual.FastComputeEngineAPIImpl;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ import java.util.stream.IntStream;
 
 public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.ProcessComputeServiceImplBase {
 
-    private final DataStorageComputeAPIImpl dataStore;
+    private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
 
     public ProcessComputeServiceImpl() {
@@ -32,41 +31,38 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
         System.out.println("ProcessComputeServiceImpl: Received request from user server.");
 
         try {
-            // Read input file lines
-            List<String> inputLines = Files.lines(Paths.get(request.getInputSource()))
-                                           .map(String::trim)
-                                           .filter(s -> !s.isEmpty())
-                                           .collect(Collectors.toList());
+            // --- FILE READING MOVED TO DATA STORAGE API ---
+            List<String> inputLines = dataStore.readInputFile(request.getInputSource());
 
             if (inputLines.isEmpty()) {
                 responseObserver.onNext(ProcessDataResult.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Input file is empty")
-                        .build());
+                    .setSuccess(false)
+                    .setMessage("Input file is empty")
+                    .build());
                 responseObserver.onCompleted();
                 return;
             }
 
             String delimiter = request.getOutputDelimiter().isEmpty() ? "," : request.getOutputDelimiter();
 
-            // Map each line to its index to preserve order
+            // Map each line to a ComputeRequest
             Map<Integer, ComputeRequest> indexedRequests = IntStream.range(0, inputLines.size())
-                    .boxed()
-                    .collect(Collectors.toMap(i -> i, i -> new ComputeRequest() {
-                        @Override
-                        public int getInputNumber() {
-                            return 0; // unused
-                        }
+                .boxed()
+                .collect(Collectors.toMap(i -> i, i -> new ComputeRequest() {
+                    @Override
+                    public int getInputNumber() {
+                        return 0; // unused
+                    }
 
-                        @Override
-                        public String getInputString() {
-                            return inputLines.get(i);
-                        }
-                    }));
+                    @Override
+                    public String getInputString() {
+                        return inputLines.get(i);
+                    }
+                }));
 
-            // Compute sequences
+            // Compute sequences using FastComputeEngineAPI
             List<ComputeResult> results = ((FastComputeEngineAPIImpl) computeEngine)
-                    .computeCollatzBatch(indexedRequests.values().stream().collect(Collectors.toList()));
+                .computeCollatzBatch(indexedRequests.values().stream().collect(Collectors.toList()));
 
             // Build output in original order
             StringBuilder computedResults = new StringBuilder();
@@ -110,9 +106,9 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
 
             // Build and send gRPC response
             ProcessDataResult grpcResponse = ProcessDataResult.newBuilder()
-                    .setSuccess(result.isSuccess())
-                    .setMessage(result.getMessage())
-                    .build();
+                .setSuccess(result.isSuccess())
+                .setMessage(result.getMessage())
+                .build();
 
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
@@ -121,9 +117,9 @@ public class ProcessComputeServiceImpl extends ProcessComputeServiceGrpc.Process
 
         } catch (Exception e) {
             responseObserver.onNext(ProcessDataResult.newBuilder()
-                    .setSuccess(false)
-                    .setMessage("Error in Compute Engine: " + e.getMessage())
-                    .build());
+                .setSuccess(false)
+                .setMessage("Error in Compute Engine: " + e.getMessage())
+                .build());
             responseObserver.onCompleted();
             System.err.println("ProcessComputeServiceImpl: Exception - " + e.getMessage());
         }

@@ -8,20 +8,18 @@ import project.api.process.ProcessRequest;
 import project.api.process.ProcessResult;
 import project.impl.process.DataStorageComputeAPIImpl;
 import project.api.conceptual.ComputeEngineAPI;
+import project.impl.conceptual.ComputeEngineAPIImpl;
 import project.api.conceptual.ComputeRequest;
 import project.api.conceptual.ComputeResult;
-import project.impl.conceptual.ComputeEngineAPIImpl;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class UserComputeAPIMultiThreaded implements UserComputeAPI {
+
     private final DataStorageComputeAPI dataStore;
     private final ComputeEngineAPI computeEngine;
     private static final int THREAD_LIMIT = 8;
@@ -41,89 +39,77 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
             if (request == null) {
                 return new UserComputeResult(false, "Request cannot be null");
             }
-            if (request.getInputSource() == null || request.getInputSource().trim().isEmpty()) {
-                return new UserComputeResult(false, "Input source must be provided");
-            }
 
             String inputPath = request.getInputSource();
             String outputPath = request.getOutputDestination();
             String delimiter = request.getOutputDelimiter() != null ? request.getOutputDelimiter() : ",";
 
-            // Read input as raw strings
-            List<String> inputLines = Files.lines(Paths.get(inputPath))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
+            // --- FILE READING MOVED TO DATA STORAGE API ---
+            List<String> inputLines = dataStore.readInputFile(inputPath);
 
             ExecutorService executor = Executors.newFixedThreadPool(THREAD_LIMIT);
             List<Future<String>> futures = new ArrayList<>();
 
             for (String line : inputLines) {
                 futures.add(executor.submit(() -> {
-                    ComputeRequest computeRequest;
+                    ComputeRequest computeRequest = new ComputeRequest() {
+                        @Override
+                        public int getInputNumber() {
+                            try {
+                                return Integer.parseInt(line);
+                            } catch (NumberFormatException e) {
+                                return -1;
+                            }
+                        }
 
-                    try {
-                        // Try to parse as small integer
-                        int small = Integer.parseInt(line);
-                        computeRequest = new ComputeRequest() {
-                            @Override
-                            public int getInputNumber() {
-                                return small;
-                            }
-                            @Override
-                            public String getInputString() {
+                        @Override
+                        public String getInputString() {
+                            try {
+                                Integer.parseInt(line);
                                 return null;
-                            }
-                        };
-                    } catch (NumberFormatException ex) {
-                        // Big number fallback
-                        computeRequest = new ComputeRequest() {
-                            @Override
-                            public int getInputNumber() {
-                                return -1; // ignored
-                            }
-                            @Override
-                            public String getInputString() {
+                            } catch (NumberFormatException e) {
                                 return line;
                             }
-                        };
-                    }
+                        }
+                    };
 
-                    ComputeResult computeResult = computeEngine.computeCollatz(computeRequest);
-                    if (!computeResult.isSuccess()) {
+                    ComputeResult result = computeEngine.computeCollatz(computeRequest);
+                    if (!result.isSuccess()) {
                         throw new RuntimeException("Computation failed for input: " + line);
                     }
-
-                    return computeResult.getSequence().replace(",", delimiter);
+                    return result.getSequence().replace(",", delimiter);
                 }));
             }
 
-            StringBuilder resultBuilder = new StringBuilder();
+            StringBuilder finalOutput = new StringBuilder();
             for (Future<String> f : futures) {
-                resultBuilder.append(f.get()).append(System.lineSeparator());
+                finalOutput.append(f.get()).append(System.lineSeparator());
             }
 
             executor.shutdown();
 
-            String finalOutput = resultBuilder.toString().trim();
-
+            // Write results via DataStorageComputeAPI
             ProcessRequest writeRequest = new ProcessRequest() {
                 @Override
                 public List<Integer> getInputData() {
                     return null;
                 }
+
                 @Override
                 public String getOutputDestination() {
                     return outputPath;
                 }
+
                 @Override
                 public String getDelimiter() {
                     return delimiter;
                 }
+
                 @Override
                 public String getComputedResults() {
-                    return finalOutput;
+                    return finalOutput.toString();
                 }
+
                 @Override
                 public String getInputSource() {
                     return inputPath;
@@ -136,6 +122,7 @@ public class UserComputeAPIMultiThreaded implements UserComputeAPI {
             }
 
             return new UserComputeResult(true, "Multi-threaded computation completed successfully");
+
         } catch (Exception e) {
             return new UserComputeResult(false, "Error: " + e.getMessage());
         }
