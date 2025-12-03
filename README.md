@@ -14,13 +14,21 @@ Output: 6,3,10,5,16,8,4,2,1
 
 The current thread limit is 8
 
-Checkpoint 8 Test info: 
-The benchmark test repeatedly computes 50,000 Collatz sequences using both the original ComputeEngineAPIImpl and the optimized FastComputeEngineAPIImpl.
-The optimized version parallelizes the computations using multiple threads to improve performance. 
-It measures the execution time for each run, calculates averages, and compares performance. 
-The optimized version was found to be up to 40% faster than the original on average.
-All detailed results from the 10 runs are saved in checkpoint8output.txt.
+Checkpoint 8 Benchmark Info"
+The benchmark tests run large batches of Collatz computations across several versions of the compute engine:
 
-The optimized version was found to be up to 80% faster than the original on average after adding BigInteger support to both.
+Original ComputeEngineAPIImpl
+Fast FastComputeEngineAPIImpl
+Optimized ComputeEngineOptimizedAPIImpl
+Ultra Fast ComputeEngineAPIUltraFastImpl
+
+Each benchmark run evaluates thousands of Collatz sequences and logs the timing results.
+
+The Fast version provides noticeable speed improvements compared to the original.
+The Optimized version consistently outperforms the original.
+The Ultra Fast version performs the best overall and demonstrates the highest percentage improvement.
+
+With the new tests/code added, results now include all four versions and print out average times along with improvement percentages over the original.
+Detailed results from the runs are saved in checkpoint8output.txt and checkpoint9output.txt.
 
 ![System Diagram](https://github.com/CPS353-Suny-New-Paltz/project-starter-code-johncavanaugh426-source/blob/main/Part2Checkpoint2.png?raw=true)
