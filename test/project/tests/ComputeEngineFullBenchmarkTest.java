@@ -17,7 +17,7 @@ public class ComputeEngineFullBenchmarkTest {
 
     @Test
     public void benchmarkAllImplementations() throws Exception {
-        int numTests = 10_000; 
+        int numTests = 10_000;
         int numRuns = 10;
 
         long[] originalTimes = new long[numRuns];
@@ -65,7 +65,11 @@ public class ComputeEngineFullBenchmarkTest {
         }
 
         // Compute averages
-        long avgOriginal = 0, avgFast = 0, avgOptimized = 0, avgUltra = 0;
+        long avgOriginal = 0;
+        long avgFast = 0;
+        long avgOptimized = 0;
+        long avgUltra = 0;
+
         for (int i = 0; i < numRuns; i++) {
             avgOriginal += originalTimes[i];
             avgFast += fastTimes[i];
@@ -83,17 +87,30 @@ public class ComputeEngineFullBenchmarkTest {
         // Write results to file
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("checkpoint9output.txt")))) {
             writer.println("Benchmark results for " + numRuns + " runs with " + numTests + " Collatz sequences each:");
+
             writer.println("Original times (ms):");
-            for (long t : originalTimes) writer.println(t);
+            for (long t : originalTimes) {
+                writer.println(t);
+            }
+
             writer.println("Fast times (ms):");
-            for (long t : fastTimes) writer.println(t);
+            for (long t : fastTimes) {
+                writer.println(t);
+            }
+
             writer.println("Optimized times (ms):");
-            for (long t : optimizedTimes) writer.println(t);
+            for (long t : optimizedTimes) {
+                writer.println(t);
+            }
+
             writer.println("Ultra-Fast times (ms):");
-            for (long t : ultraFastTimes) writer.println(t);
+            for (long t : ultraFastTimes) {
+                writer.println(t);
+            }
+
             writer.println("Average Original: " + avgOriginal + " ms");
             writer.println("Average Fast: " + avgFast + " ms");
-            writer.println("Average Optimized: " + avgOptimized + " ms  <-- Graded improvement");
+            writer.println("Average Optimized: " + avgOptimized + " ms");
             writer.println("Average Ultra-Fast: " + avgUltra + " ms");
             writer.println("Optimized Improvement vs Original: " + String.format("%.2f", improvementOptimized) + "%");
             writer.println("Ultra-Fast Improvement vs Original: " + String.format("%.2f", improvementUltra) + "%");
@@ -108,7 +125,7 @@ public class ComputeEngineFullBenchmarkTest {
         System.out.println("Ultra-Fast Improvement vs Original: " + String.format("%.2f", improvementUltra) + "%");
 
         // Assert at least 10% improvement for the graded version
-        assertTrue(avgOptimized <= avgOriginal * 0.9, 
+        assertTrue(avgOptimized <= avgOriginal * 0.9,
                 "Optimized implementation did not achieve at least 10% improvement over original");
     }
 }
